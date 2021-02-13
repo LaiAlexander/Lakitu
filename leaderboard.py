@@ -58,7 +58,7 @@ class Record():
 
     def __repr__(self):
         return self.name + ": " + str(self.time)
-    
+
     @classmethod
     def from_json(cls, record_dict):
         name = record_dict["Name"]
