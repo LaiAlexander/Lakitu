@@ -1,4 +1,5 @@
 import json
+import pathlib
 
 CUPS = [
     "Mushroom",
@@ -108,20 +109,23 @@ def generate_json():
     speed_run_categories = generate_speed_run_categories(tracks)
     versus_rating = generate_versus_rating()
 
-    with open("tracks.json", "w") as outfile:
+    pathlib.Path("data").mkdir(exist_ok=True)
+
+    with open(pathlib.Path.cwd().joinpath("data", "tracks.json"), "w") as outfile:
         json.dump(tracks, outfile, indent=4)
 
-    with open("aliases.json", "w") as outfile:
+    with open(pathlib.Path.cwd().joinpath("data", "aliases.json"), "w") as outfile:
         json.dump(aliases, outfile, indent=4)
 
-    with open("cups.json", "w") as outfile:
+    with open(pathlib.Path.cwd().joinpath("data", "cups.json"), "w") as outfile:
         json.dump(cups, outfile, indent=4)
 
-    with open("speed_run_categories.json", "w") as outfile:
+    with open(pathlib.Path.cwd().joinpath("data", "speed_run_categories.json"), "w") as outfile:
         json.dump(speed_run_categories, outfile, indent=4)
 
-    with open("versus_rating.json", "w") as outfile:
+    with open(pathlib.Path.cwd().joinpath("data", "versus_rating.json"), "w") as outfile:
         json.dump(versus_rating, outfile, indent=4)
+
 
 if __name__ == "__main__":
     generate_json()

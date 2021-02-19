@@ -1,20 +1,32 @@
 import datetime
 import json
+import pathlib
 
-with open("tracks.json", "r") as read_file:
+import discord
+from discord.ext import commands
+
+with open(pathlib.Path.cwd().joinpath("data", "tracks.json"), "r") as read_file:
     TRACKS = json.load(read_file)
 
-with open("aliases.json", "r") as read_file:
+with open(pathlib.Path.cwd().joinpath("data", "aliases.json"), "r") as read_file:
     ALIASES = json.load(read_file)
 
-with open("cups.json", "r") as read_file:
+with open(pathlib.Path.cwd().joinpath("data", "cups.json"), "r") as read_file:
     CUPS = json.load(read_file)
 
-with open("speed_run_categories.json", "r") as read_file:
+with open(pathlib.Path.cwd().joinpath("data", "speed_run_categories.json"), "r") as read_file:
     SPEED_RUN_CATEGORIES = json.load(read_file)
 
-with open("versus_rating.json", "r") as read_file:
+with open(pathlib.Path.cwd().joinpath("data", "versus_rating.json"), "r") as read_file:
     VERSUS_RATINGS = json.load(read_file)
+
+class Leaderboard(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(name="updatevr", help="Update your VR")
+    async def update_vr(self, ctx):
+        print("updatevr", flush=True)
 
 class Record():
     def __init__(self, name, time):

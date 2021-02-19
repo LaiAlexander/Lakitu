@@ -132,8 +132,4 @@ dmypy.json
 .vscode/
 
 # Project specific
-aliases.json
-cups.json
-tracks.json
-speed_run_categories.json
-versus_rating.json
+data/
