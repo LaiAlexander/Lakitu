@@ -25,8 +25,51 @@ class Leaderboard(commands.Cog):
         self.bot = bot
 
     @commands.command(name="updatevr", help="Update your VR")
-    async def update_vr(self, ctx):
-        print("updatevr", flush=True)
+    async def update_vr(self, ctx, vr):        
+        name = ctx.author.name
+        discord_id = ctx.author.id
+        
+        print(repr(ctx.author))
+        print(ctx.author, flush=True)
+        print(ctx.message.author, flush=True)
+        print(ctx.author.name, flush=True)
+        print(ctx.author.id, flush=True)
+        print(type(ctx.author), flush=True)
+        print(type(ctx.message.author), flush=True)
+        # await ctx.author.mention()
+        print(ctx.author.mention, flush=True)
+        # await ctx.send(ctx.author.mention)
+        # await ctx.send(f"<@{ctx.author.id}>")
+
+        status, standing, leaderboard_title, leaderboard = update_versus_rating(name, discord_id, vr)
+        # await ctx.send(result)
+
+        embed = discord.Embed()
+        embed.color = discord.Color.blue()
+        embed.title = "Versus ratings"
+        embed.description = status + "\n" + standing
+        embed.set_author(name=name, icon_url=ctx.author.avatar_url)
+        embed.add_field(name=leaderboard_title, value=leaderboard)
+
+        await ctx.send(embed=embed)
+
+    @commands.command(name="myvr", help="View your VR")
+    async def my_vr(self, ctx, view_all=None):
+        name = ctx.author.name
+        discord_id = ctx.author.id
+
+        view_all = view_all == "all"
+
+        standing, leaderboard_title, leaderboard = view_versus_rating(discord_id, all_places=view_all)
+
+        embed = discord.Embed()
+        embed.color = discord.Color.blue()
+        embed.title = "Versus ratings"
+        embed.description = standing
+        embed.set_author(name=name, icon_url=ctx.author.avatar_url)
+        embed.add_field(name=leaderboard_title, value=leaderboard)
+
+        await ctx.send(embed=embed)
 
 class Record():
     def __init__(self, name, time):
@@ -97,8 +140,10 @@ class Record():
         return cls(name, time)
 
 class VersusRating():
-    def __init__(self, name, vr):
+    def __init__(self, name, discord_id, vr):
+        # self.identifier = {"Name": name, "ID": discord_id}
         self.name = name
+        self.discord_id = discord_id
         self.vr = int(vr)
 
     def __lt__(self, value):
@@ -111,9 +156,19 @@ class VersusRating():
         return f"{self.name}: {self.vr}"
 
     @classmethod
-    def from_str(cls, data):
-        name, vr = data.split(": ")
-        return cls(name, vr)
+    def from_json(cls, data):
+        name = data["Name"]
+        discord_id = data["ID"]
+        vr = data["vr"]
+        return cls(name, discord_id, vr)
+
+    @property
+    def json(self):
+        v_rating = {}
+        v_rating["Name"] = self.name
+        v_rating["ID"] = self.discord_id
+        v_rating["vr"] = self.vr
+        return v_rating
 
 def add_record():
     race_name, name, time, cc = [part.strip() for part in input("Shorthand for registering: (trackname/alias, name, time, cc):").split(",")]
@@ -153,7 +208,7 @@ def add_record():
     record_list.sort()
     race["Leaderboard"][cc] = [{"Name": record.name, "Time": record.time_to_str()} for record in record_list]
     view_course_records(race_name, category, category_name, cc[:-2], name)
-    with open(category_name + ".json", "w") as outfile:
+    with open(pathlib.Path.cwd().joinpath("data", category_name + ".json"), "w") as outfile:
         json.dump(category, outfile, indent=4)
 
 def get_race_name(name):
@@ -263,73 +318,103 @@ def view_personal_records():
         if not value:
             print(f"You have no records for {cc}.")
 
-def update_versus_rating():
-    name, v_rating = [part.strip() for part in input("What name and vr? (name, vr)").split(",")]
-    vr = VersusRating(name, v_rating)
-    
-    vr_list = [VersusRating.from_str(part) for part in VERSUS_RATINGS["vrs"]]
-    
+def update_versus_rating(name=None, discord_id=None, v_rating=None):
+    if not name or not v_rating:
+        name, discord_id, v_rating = [part.strip() for part in input("What name, id and vr? (name, id, vr)").split(",")]
+    vr = VersusRating(name, discord_id, v_rating)
+
+    vr_list = [VersusRating.from_json(part) for part in VERSUS_RATINGS["vrs"]]
+
+    # result = []
+
     for i, versus_rating in enumerate(vr_list):
-        if vr.name == versus_rating.name:
-            print("Your rating has been updated!")
+        if vr.discord_id == versus_rating.discord_id:
             vr_list[i] = vr
+            # print("Your rating has been updated!")
+            status = "Your rating has been updated!"
             break
         if vr > versus_rating:
-            print(f"You beat {versus_rating.name}.")
+            status = f"You beat {versus_rating.name}."
+            # print(f"You beat {versus_rating.name}.")
             for j, old_rating in enumerate(vr_list):
-                if old_rating.name == vr.name:
+                if old_rating.discord_id == discord_id:
                     vr_list[j] = vr
                     break
-            vr_list.insert(i, vr)
+            else:
+                vr_list.insert(i, vr)
             break
     else:
         vr_list.append(vr)
-        print("Your rating has been added")
-    
+        status = "Your rating has been added."
+        # print("Your rating has been added.")
+
     vr_list.sort()
     vr_list.reverse()
 
-    vr_string = [str(vr) for vr in vr_list]
+    VERSUS_RATINGS["vrs"] = [vr.json for vr in vr_list]
 
-    VERSUS_RATINGS["vrs"] = vr_string
-    
-    view_versus_rating(vr.name)
+    # vr_string = [str(vr) for vr in vr_list]
 
-    with open("versus_rating.json", "w") as outfile:
+    # VERSUS_RATINGS["vrs"] = vr_string
+
+    with open(pathlib.Path.cwd().joinpath("data", "versus_rating.json"), "w") as outfile:
         json.dump(VERSUS_RATINGS, outfile, indent=4)
 
-def view_versus_rating(name=None, vr_list=None):
+    # result.append(view_versus_rating(vr.discord_id, vr_list))
+    # result = "\n".join(result)
+
+    standing, leaderboard_title, leaderboard = view_versus_rating(vr.discord_id, vr_list)
+    return status, standing, leaderboard_title, leaderboard
+
+def view_versus_rating(discord_id=None, vr_list=None, all_places=False):
     places_to_display = 5
-    if not name:
-        name = input("What is your name? ")
+    if not discord_id:
+        discord_id = input("What is your discord_id? ")
+    if not vr_list:
+        vr_list = [VersusRating.from_json(vr) for vr in VERSUS_RATINGS["vrs"]]
 
-    vr_list = [VersusRating.from_str(vr) for vr in VERSUS_RATINGS["vrs"]]
-
-    if len(vr_list) < places_to_display:
+    if len(vr_list) < places_to_display or all_places:
         places_to_display = len(vr_list)
 
     for i, versus_rating in enumerate(vr_list):
-        if versus_rating.name == name:
+        if versus_rating.discord_id == discord_id:
             if i == 0:
-                print(f"You are in {i + 1}. place!")
+                standing = f"You are in {i + 1}. place!"
+                # print(f"You are in {i + 1}. place!")
             else:
-                print(f"You are in {i + 1}. place, behind {vr_list[i - 1].name}.")
+                standing = f"You are in {i + 1}. place, behind {vr_list[i - 1].name}."
+                # print(f"You are in {i + 1}. place, behind {vr_list[i - 1].name}.")
             break
     else:
-        print(f"Couldn\'t find anyone named {name}.")
+        standing = f"Couldn\'t find anyone with discord id: {discord_id}."
+        # print(f"Couldn\'t find anyone named {name}.")
 
-    print(f"Top {places_to_display} versus ratings:")
+    if all_places:
+        leaderboard_title = "All versus ratings:"
+        # print("All versus ratings:")
+    else:
+        leaderboard_title = f"Top {places_to_display} versus ratings:"
+        # print(f"Top {places_to_display} versus ratings:")
+
+    leaderboard = []
     i = 1
-    print(f"{i}. {vr_list[0]}")
+    leaderboard.append(f"{i}. {vr_list[0]}")
+    # print(f"{i}. {vr_list[0]}")
     for j in range(1, places_to_display):
         if vr_list[j - 1].vr != vr_list[j].vr:
             i = j + 1
-        print(f"{i}. {vr_list[j]}")
+        # print(f"{i}. {vr_list[j]}")
+        leaderboard.append(f"{i}. {vr_list[j]}")
+
+    leaderboard = "\n".join(leaderboard)
+    
+    return standing, leaderboard_title, leaderboard
 
 if __name__ == '__main__':
     # add_record()
     # view_course_records()
     # count_personal_records()
     # view_personal_records()
-    # update_versus_rating()
-    view_versus_rating()
+    print(update_versus_rating())
+    # print(view_versus_rating(all_places=True))
+    # test_tuple()
