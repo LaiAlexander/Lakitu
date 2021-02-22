@@ -71,6 +71,95 @@ class Leaderboard(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @commands.command(name="checkvr", help="View VR of anyone")
+    async def check_vr(self, ctx, name=None, view_all=None):
+        # TODO heller bare bruke denne istedenfor myvr. hvis name==me/None, så finn egen info
+
+        discord_id = ctx.author.id
+        view_all = view_all == "all" or name == "all"
+
+        for vr in VERSUS_RATINGS["vrs"]:
+            if vr["Name"] == name:
+                discord_id = vr["ID"]
+
+        guild = ctx.guild
+
+        # users = self.bot.get_all_members()
+        # for user in users:
+        #     if user.name == "Stine" or user.name =="kravdal":
+        #         print(f"{user.name}: {user.id}")
+
+
+        print(discord_id, flush=True)
+        user = self.bot.get_user(discord_id)
+        user = guild.get_member(int(discord_id))
+
+        if not user:
+            print("Not user.", flush=True)
+        print(user, flush=True)
+        # print(user.id, flush=True)
+        # print(user.name, flush=True)
+        
+        standing, leaderboard_title, leaderboard = view_versus_rating(discord_id, all_places=view_all)
+
+        embed = discord.Embed()
+        embed.color = discord.Color.blue()
+        embed.title = "Versus ratings"
+        embed.description = standing
+        embed.set_author(name=name, icon_url=user.avatar_url)
+        embed.add_field(name=leaderboard_title, value=leaderboard)
+        print(user.avatar_url, flush=True)
+        embed.set_thumbnail(url=user.avatar_url)
+
+        await ctx.send(embed=embed)
+    
+    @commands.group(name="vr", invoke_without_command=True)
+    async def vrating(self, ctx, name=None, view_all=None):
+        # if ctx.invoked_subcommand is None:
+        discord_id = None
+        if not name or name == "all":
+            discord_id = ctx.author.id
+        view_all = view_all == "all" or name == "all"
+
+        for vr in VERSUS_RATINGS["vrs"]:
+            if vr["Name"].lower() == str(name).lower():
+                discord_id = vr["ID"]
+
+        user = self.bot.get_user(discord_id)
+        if not user:
+            await ctx.send(f"Could not find {name} on the vr leaderboard.")
+            return
+        
+        standing, leaderboard_title, leaderboard = view_versus_rating(discord_id, all_places=view_all)
+
+        status = ""
+        embed = make_embed("Versus ratings", status, standing, user.name, user.avatar_url, leaderboard_title, leaderboard)
+        await ctx.send(embed=embed)
+
+    @vrating.command(name="update")
+    async def update(self, ctx, vr):
+        name = ctx.author.name
+        discord_id = ctx.author.id
+        print("!vr update", flush=True)
+        status, standing, leaderboard_title, leaderboard = update_versus_rating(name, discord_id, vr)
+
+        embed = make_embed("Versus ratings", status, standing, name, ctx.author.avatar_url, leaderboard_title, leaderboard)
+        await ctx.send(embed=embed)
+
+def make_embed(title, status, standing, name, icon_url, leaderboard_title, leaderboard):
+    embed = discord.Embed()
+    embed.color = discord.Color.blue()
+    embed.title = title
+    embed.description = status + "\n" + standing
+    embed.set_author(name=name)
+    embed.add_field(name=leaderboard_title, value=leaderboard)
+    if icon_url:
+        embed.set_author(name=name, icon_url=icon_url)
+        embed.set_thumbnail(url=icon_url)
+    return embed
+
+
+
 class Record():
     def __init__(self, name, time):
         self.name = name
@@ -379,10 +468,10 @@ def view_versus_rating(discord_id=None, vr_list=None, all_places=False):
     for i, versus_rating in enumerate(vr_list):
         if versus_rating.discord_id == discord_id:
             if i == 0:
-                standing = f"You are in {i + 1}. place!"
+                standing = f"{versus_rating.name} is in {i + 1}. place with VR {versus_rating.vr}!"
                 # print(f"You are in {i + 1}. place!")
             else:
-                standing = f"You are in {i + 1}. place, behind {vr_list[i - 1].name}."
+                standing = f"{versus_rating.name} is in {i + 1}. place with VR {versus_rating.vr}, behind {vr_list[i - 1].name}."
                 # print(f"You are in {i + 1}. place, behind {vr_list[i - 1].name}.")
             break
     else:

@@ -10,7 +10,8 @@ load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD = os.getenv("GUILD_TOKEN")
 
-BOT = commands.Bot(command_prefix="!")
+INTENTS = discord.Intents.all()
+BOT = commands.Bot(command_prefix="!", intents=INTENTS)
 BOT.add_cog(leaderboard.Leaderboard(BOT))
 
 @BOT.event
