@@ -11,6 +11,12 @@ class CogManager(commands.Cog):
     async def on_ready(self):
         print(f"{self.__class__.__name__} cog has been loaded\n-----", flush=True)
 
+    @commands.command(name="owner", help="Check if you are owner of this bot.")
+    async def owner(self, ctx):
+        owner = self.bot.is_owner(ctx.author)
+        owner = "Yes" if owner else "No"
+        await ctx.send(f"Are you the owner of me? {owner}")
+
     @commands.command(name="reload", help="Reload a cog")
     @commands.is_owner()
     async def reload_cog(self, ctx, cog=None):
