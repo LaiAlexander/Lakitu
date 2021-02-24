@@ -28,33 +28,6 @@ class Leaderboard(commands.Cog):
     async def on_ready(self):
         print(f"{self.__class__.__name__} cog has been loaded\n-----", flush=True)
 
-    @commands.command(name="reload", help="Reload a cog")
-    @commands.is_owner()
-    async def reload_cog(self, ctx, cog=None):
-        if cog:
-            async with ctx.typing():
-                embed = discord.Embed(title=f"Reloading {cog}")
-                try:
-                    self.bot.reload_extension(f"cogs.{cog}")
-                    embed.add_field(name=f"Reloaded {cog}!", value="Success!", inline=False)
-                    print(f"{self.__class__.__name__} cog has been reloaded\n-----", flush=True)
-                except Exception as e:
-                    embed.add_field(name=f"Failed to reload {cog}.", value=e, inline=False)
-                    print(f"Execption: {e}", flush=True)
-        else:
-            async with ctx.typing():
-                embed = discord.Embed(title="Reloading all cogs")
-                cogs = [file.stem for file in Path.cwd().joinpath("cogs").glob("**/*.py")]
-                for cog in cogs:
-                    try:
-                        self.bot.reload_extension(f"cogs.{cog}")
-                        embed.add_field(name=f"Reloaded {cog}!", value="Success!", inline=False)
-                        print(f"{self.__class__.__name__} cog has been reloaded\n-----", flush=True)
-                    except Exception as e:
-                        embed.add_field(name=f"Failed to reload {cog}.", value=e, inline=False)
-                        print(f"Execption: {e}", flush=True)
-        await ctx.send(embed=embed)   
-
     @commands.command(name="owner", help="Check if you are owner of this bot.")
     async def owner(self, ctx):
         owner = self.bot.is_owner(ctx.author)
