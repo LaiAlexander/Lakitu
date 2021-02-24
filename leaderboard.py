@@ -24,6 +24,25 @@ class Leaderboard(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(name="reload", help="Reload a cog")
+    @commands.is_owner()
+    async def reload_cog(self, ctx, cog):
+        async with ctx.typing():
+            embed = discord.Embed(title=f"Reloading {cog}")
+            try:
+                self.bot.reload_extension(cog)
+                embed.add_field(name=f"Reloaded {cog}!", value="Success!", inline=False)
+            except Exception as e:
+                embed.add_field(name=f"Failed to reload {cog}.", value=e, inline=False)
+                print(e, flush=True)
+            await ctx.send(embed=embed)
+
+    @commands.command(name="owner", help="Check if you are owner of this bot.")
+    async def owner(self, ctx):
+        owner = self.bot.is_owner(ctx.author)
+        owner = "Yes" if owner else "No"
+        await ctx.send(f"Are you the owner of me? {owner}")
+
     @commands.command(name="updatevr", help="Update your VR")
     async def update_vr(self, ctx, vr):        
         name = ctx.author.name
@@ -84,12 +103,6 @@ class Leaderboard(commands.Cog):
 
         guild = ctx.guild
 
-        # users = self.bot.get_all_members()
-        # for user in users:
-        #     if user.name == "Stine" or user.name =="kravdal":
-        #         print(f"{user.name}: {user.id}")
-
-
         print(discord_id, flush=True)
         user = self.bot.get_user(discord_id)
         user = guild.get_member(int(discord_id))
@@ -129,7 +142,7 @@ class Leaderboard(commands.Cog):
         if not user:
             await ctx.send(f"Could not find {name} on the vr leaderboard.")
             return
-        
+
         standing, leaderboard_title, leaderboard = view_versus_rating(discord_id, all_places=view_all)
 
         status = ""
@@ -146,6 +159,17 @@ class Leaderboard(commands.Cog):
         embed = make_embed("Versus ratings", status, standing, name, ctx.author.avatar_url, leaderboard_title, leaderboard)
         await ctx.send(embed=embed)
 
+    @commands.command(name="timetrial")
+    async def timetrial(self, ctx, race, time, cc):
+        name = ctx.author.name
+        discord_id = ctx.author.id
+        race_name, race_info, status, standing, leaderboard_title, leaderboard = add_record(race, name, discord_id, time, cc)
+        print("back in timetrial", flush=True)
+        status = race_info + "\n" + status
+        embed = make_embed(race_name, status, standing, name, ctx.author.avatar_url, leaderboard_title, leaderboard)
+
+        await ctx.send(embed=embed)
+
 def make_embed(title, status, standing, name, icon_url, leaderboard_title, leaderboard):
     embed = discord.Embed()
     embed.color = discord.Color.blue()
@@ -158,19 +182,19 @@ def make_embed(title, status, standing, name, icon_url, leaderboard_title, leade
         embed.set_thumbnail(url=icon_url)
     return embed
 
-
-
 class Record():
-    def __init__(self, name, time):
+    def __init__(self, name, discord_id, time):
         self.name = name
+        self.discord_id = discord_id
         time = time.replace(".", ":")
         time = time.split(":")
         if len(time) == 3:
             time.insert(0, "0")
-        if len(time[3]) < 3:
-            if len(time[3]) < 2:
-                time[3] = time[3] + "0"
-            time[3] = time[3] + "0"
+        # dont think the following is needed anymore, but will keep it for now.
+        # if len(time[3]) < 3:
+        #     if len(time[3]) < 2:
+        #         time[3] = time[3] + "0"
+        #     time[3] = time[3] + "0"
         self.time = datetime.datetime.strptime((":").join(time), "%H:%M:%S:%f").time()
         # should this be a time or a datetime object?
 
@@ -206,6 +230,7 @@ class Record():
     @classmethod
     def from_json(cls, record_dict):
         name = record_dict["Name"]
+        discord_id = record_dict["ID"]
         time = record_dict["Time"]
         # time = time.split(".")
         # if len(time) > 1:
@@ -226,7 +251,15 @@ class Record():
         #     time.append("0")
         # # print(time)
         # time = (":").join(time)
-        return cls(name, time)
+        return cls(name, discord_id, time)
+
+    @property
+    def json(self):
+        record = {}
+        record["Name"] = self.name
+        record["ID"] = self.discord_id
+        record["Time"] = self.time_to_str()
+        return record
 
 class VersusRating():
     def __init__(self, name, discord_id, vr):
@@ -259,8 +292,10 @@ class VersusRating():
         v_rating["vr"] = self.vr
         return v_rating
 
-def add_record():
-    race_name, name, time, cc = [part.strip() for part in input("Shorthand for registering: (trackname/alias, name, time, cc):").split(",")]
+def add_record(race_name=None, name=None, discord_id=None, time=None, cc=None):
+    print("In add_record", flush=True)
+    if not race_name and not name and not time:
+        race_name, name, time, cc = [part.strip() for part in input("Shorthand for registering: (trackname/alias, name, time, cc):").split(",")]
     race_name, category_name, category = get_race_name(race_name)
     if not race_name:
         return
@@ -271,7 +306,10 @@ def add_record():
         return
     cc = cc + "cc"
 
-    record = Record(name, time)
+    print("trying to make Record", flush=True)
+    # TODO Record is not being made
+    record = Record(name, discord_id, time)
+    print(record, flush=True)
 
     record_list = [Record.from_json(records) for records in race["Leaderboard"][cc]]
     for i, existing_record in enumerate(record_list):
@@ -279,6 +317,7 @@ def add_record():
             if record.name == existing_record.name:
                 record_list[i] = record
                 print("You beat your own record!")
+                status = "You beat your own record!"
                 break
             for old_record in record_list:
                 if old_record.name == record.name:
@@ -287,18 +326,24 @@ def add_record():
                     break
             record_list.insert(i, record)
             print(existing_record.name + " have been beaten!")
+            status = f"{existing_record.name} have been beaten!"
             break
         if record.name == existing_record.name:
             print("Your previous record is better!")
+            status = "Your precious record is better!"
             break
     else:
         record_list.append(record)
         print("You have the record!")
+        status = "You have the record!"
     record_list.sort()
     race["Leaderboard"][cc] = [{"Name": record.name, "Time": record.time_to_str()} for record in record_list]
-    view_course_records(race_name, category, category_name, cc[:-2], name)
+    race_info, standing, leaderboard_title, leaderboard = view_course_records(race_name, category, category_name, cc[:-2], name)
     with open(pathlib.Path.cwd().joinpath("data", category_name + ".json"), "w") as outfile:
         json.dump(category, outfile, indent=4)
+
+    # TODO consider returning a dict instead for these fucntions
+    return race_name, race_info, status, standing, leaderboard_title, leaderboard
 
 def get_race_name(name):
     if ALIASES.get(name):
@@ -340,37 +385,55 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
     if category_name == "tracks":
         print(f"{race_name} {cc}, {race['Cup']} cup, {race['Course']} course.")
         print(f"Alias: {race['Alias']}")
+        race_info = f"{race['Cup']} cup, {race['Course']} course.\nAlias: {race['Alias']}"
     elif category_name == "cups":
-        trks = (", ").join(race["Tracks"])
         print(f"{race_name} cup, {race['Course']} courses.")
-        print(f"{trks}")
+        print(f"Tracks: {(', ').join(race['Tracks'])}")
+        race_info = f"{race['Course']} courses.\nTracks: {(', ').join(race['Tracks'])}"
     elif category_name == "speed_run_categories":
         print(f"Speed run category: {race_name}.")
         print(f"Cups: {(', ').join(race['Cups'])}")
+        race_info = f"Cups: {(', ').join(race['Cups'])}"
 
     record_list = race["Leaderboard"][cc]
     if not record_list:
         print("No records added yet!")
         return
 
+    # record_list_150 = race["Leaderboard"]["150cc"]
+    # record_list_200 = race["Leaderboard"]["200cc"]
+
     if len(record_list) < places_to_display:
         places_to_display = len(record_list)
+
 
     for i , record in enumerate(record_list):
         if record["Name"] == name:
             if i == 0:
                 print(f"You are in {i + 1}. place!")
+                standing = f"You are in {i + 1}. place!"
             else:
                 print(f"You are in {i + 1}. place, behind {record_list[i - 1]['Name']}.")
+                standing = f"You are in {i + 1}. place, behind {record_list[i - 1]['Name']}."
             break
+    else:
+        print("You are not on the leaderboard yet.")
+        standing = "You are not on the leaderboard yet."
 
     print(f"Top {places_to_display} results:")
+    leaderboard_title = f"Top {places_to_display} results ({cc}):"
+    
+    leaderboard = []
     i = 1
     print(f"{i}. {Record.from_json(record_list[0])}")
+    leaderboard.append("{i}. {Record.from_json(record_list[0])}")
     for j in range(1, places_to_display):
         if record_list[j - 1]["Time"] != record_list[j]["Time"]:
             i = j + 1
         print(f"{i}. {Record.from_json(record_list[j])}")
+        leaderboard.append(f"{i}. {Record.from_json(record_list[j])}")
+    
+    return race_info, standing, leaderboard_title, leaderboard
 
 def count_personal_records(name=None):
     if not name:
@@ -499,11 +562,14 @@ def view_versus_rating(discord_id=None, vr_list=None, all_places=False):
     
     return standing, leaderboard_title, leaderboard
 
+def setup(bot):
+    bot.add_cog(Leaderboard(bot))
+
 if __name__ == '__main__':
-    # add_record()
+    add_record()
     # view_course_records()
     # count_personal_records()
     # view_personal_records()
-    print(update_versus_rating())
+    # print(update_versus_rating())
     # print(view_versus_rating(all_places=True))
     # test_tuple()
