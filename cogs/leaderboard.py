@@ -1,41 +1,59 @@
 import datetime
 import json
-import pathlib
+from pathlib import Path
 
 import discord
 from discord.ext import commands
 
-with open(pathlib.Path.cwd().joinpath("data", "tracks.json"), "r") as read_file:
+with open(Path.cwd().joinpath("data", "tracks.json"), "r") as read_file:
     TRACKS = json.load(read_file)
 
-with open(pathlib.Path.cwd().joinpath("data", "aliases.json"), "r") as read_file:
+with open(Path.cwd().joinpath("data", "aliases.json"), "r") as read_file:
     ALIASES = json.load(read_file)
 
-with open(pathlib.Path.cwd().joinpath("data", "cups.json"), "r") as read_file:
+with open(Path.cwd().joinpath("data", "cups.json"), "r") as read_file:
     CUPS = json.load(read_file)
 
-with open(pathlib.Path.cwd().joinpath("data", "speed_run_categories.json"), "r") as read_file:
+with open(Path.cwd().joinpath("data", "speed_run_categories.json"), "r") as read_file:
     SPEED_RUN_CATEGORIES = json.load(read_file)
 
-with open(pathlib.Path.cwd().joinpath("data", "versus_rating.json"), "r") as read_file:
+with open(Path.cwd().joinpath("data", "versus_rating.json"), "r") as read_file:
     VERSUS_RATINGS = json.load(read_file)
 
 class Leaderboard(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print(f"{self.__class__.__name__} cog has been loaded\n-----", flush=True)
+
     @commands.command(name="reload", help="Reload a cog")
     @commands.is_owner()
-    async def reload_cog(self, ctx, cog):
-        async with ctx.typing():
-            embed = discord.Embed(title=f"Reloading {cog}")
-            try:
-                self.bot.reload_extension(cog)
-                embed.add_field(name=f"Reloaded {cog}!", value="Success!", inline=False)
-            except Exception as e:
-                embed.add_field(name=f"Failed to reload {cog}.", value=e, inline=False)
-                print(e, flush=True)
-            await ctx.send(embed=embed)
+    async def reload_cog(self, ctx, cog=None):
+        if cog:
+            async with ctx.typing():
+                embed = discord.Embed(title=f"Reloading {cog}")
+                try:
+                    self.bot.reload_extension(f"cogs.{cog}")
+                    embed.add_field(name=f"Reloaded {cog}!", value="Success!", inline=False)
+                    print(f"{self.__class__.__name__} cog has been reloaded\n-----", flush=True)
+                except Exception as e:
+                    embed.add_field(name=f"Failed to reload {cog}.", value=e, inline=False)
+                    print(f"Execption: {e}", flush=True)
+        else:
+            async with ctx.typing():
+                embed = discord.Embed(title="Reloading all cogs")
+                cogs = [file.stem for file in Path.cwd().joinpath("cogs").glob("**/*.py")]
+                for cog in cogs:
+                    try:
+                        self.bot.reload_extension(f"cogs.{cog}")
+                        embed.add_field(name=f"Reloaded {cog}!", value="Success!", inline=False)
+                        print(f"{self.__class__.__name__} cog has been reloaded\n-----", flush=True)
+                    except Exception as e:
+                        embed.add_field(name=f"Failed to reload {cog}.", value=e, inline=False)
+                        print(f"Execption: {e}", flush=True)
+        await ctx.send(embed=embed)   
 
     @commands.command(name="owner", help="Check if you are owner of this bot.")
     async def owner(self, ctx):
@@ -92,8 +110,6 @@ class Leaderboard(commands.Cog):
 
     @commands.command(name="checkvr", help="View VR of anyone")
     async def check_vr(self, ctx, name=None, view_all=None):
-        # TODO heller bare bruke denne istedenfor myvr. hvis name==me/None, så finn egen info
-
         discord_id = ctx.author.id
         view_all = view_all == "all" or name == "all"
 
@@ -339,7 +355,7 @@ def add_record(race_name=None, name=None, discord_id=None, time=None, cc=None):
     record_list.sort()
     race["Leaderboard"][cc] = [{"Name": record.name, "Time": record.time_to_str()} for record in record_list]
     race_info, standing, leaderboard_title, leaderboard = view_course_records(race_name, category, category_name, cc[:-2], name)
-    with open(pathlib.Path.cwd().joinpath("data", category_name + ".json"), "w") as outfile:
+    with open(Path.cwd().joinpath("data", category_name + ".json"), "w") as outfile:
         json.dump(category, outfile, indent=4)
 
     # TODO consider returning a dict instead for these fucntions
@@ -509,7 +525,7 @@ def update_versus_rating(name=None, discord_id=None, v_rating=None):
 
     # VERSUS_RATINGS["vrs"] = vr_string
 
-    with open(pathlib.Path.cwd().joinpath("data", "versus_rating.json"), "w") as outfile:
+    with open(Path.cwd().joinpath("data", "versus_rating.json"), "w") as outfile:
         json.dump(VERSUS_RATINGS, outfile, indent=4)
 
     # result.append(view_versus_rating(vr.discord_id, vr_list))
