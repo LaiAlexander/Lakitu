@@ -12,13 +12,13 @@ class CogManager(commands.Cog):
     async def on_ready(self):
         print(f"{self.__class__.__name__} cog has been loaded\n-----", flush=True)
 
-    @commands.command(name="owner", help="Check if you are owner of this bot.")
+    @commands.command(name="owner", help="Check if you are owner of this bot.", hidden=True)
     async def owner(self, ctx):
         owner = self.bot.is_owner(ctx.author)
         owner = "Yes" if owner else "No"
         await ctx.send(f"Are you the owner of me? {owner}")
 
-    @commands.command(name="reload", help="Reload a cog")
+    @commands.command(name="reload", help="Reload a cog", hidden=True)
     @commands.is_owner()
     async def reload_cog(self, ctx, cog=None):
         if cog:
@@ -55,7 +55,7 @@ class CogManager(commands.Cog):
                         print(f"Execption: {e}", flush=True)
         await ctx.send(embed=embed)
 
-    @commands.command(name="load", help="Load a new cog")
+    @commands.command(name="load", help="Load a new cog", hidden=True)
     @commands.is_owner()
     async def load_cog(self, ctx, cog=None):
         if cog:
@@ -92,7 +92,7 @@ class CogManager(commands.Cog):
                         print(f"Execption: {e}", flush=True)
         await ctx.send(embed=embed)
 
-    @commands.command(name="unload", help="Unload a cog")
+    @commands.command(name="unload", help="Unload a cog", hidden=True)
     @commands.is_owner()
     async def unload_cog(self, ctx, cog=None):
         this_cog = "cog_manager"
