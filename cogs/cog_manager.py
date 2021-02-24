@@ -27,12 +27,12 @@ class CogManager(commands.Cog):
                 try:
                     self.bot.reload_extension(f"cogs.{cog}")
                     embed.add_field(
-                        name=f"Reloaded {cog}!", value="Success!", inline=False
+                        name=f"Reloaded {cog}!", value="Success!", inline=True
                     )
                     print(f"{cog} cog has been reloaded\n-----", flush=True)
                 except Exception as e:
                     embed.add_field(
-                        name=f"Failed to reload {cog}.", value=e, inline=False
+                        name=f"Failed to reload {cog}.", value=e, inline=True
                     )
                     print(f"Execption: {e}", flush=True)
         else:
@@ -45,12 +45,12 @@ class CogManager(commands.Cog):
                     try:
                         self.bot.reload_extension(f"cogs.{cog}")
                         embed.add_field(
-                            name=f"Reloaded {cog}!", value="Success!", inline=False
+                            name=f"Reloaded {cog}!", value="Success!", inline=True
                         )
                         print(f"{cog} cog has been reloaded\n-----", flush=True)
                     except Exception as e:
                         embed.add_field(
-                            name=f"Failed to reload {cog}.", value=e, inline=False
+                            name=f"Failed to reload {cog}.", value=e, inline=True
                         )
                         print(f"Execption: {e}", flush=True)
         await ctx.send(embed=embed)
@@ -64,12 +64,12 @@ class CogManager(commands.Cog):
                 try:
                     self.bot.load_extension(f"cogs.{cog}")
                     embed.add_field(
-                        name=f"Loaded {cog}!", value="Success!", inline=False
+                        name=f"Loaded {cog}!", value="Success!", inline=True
                     )
                     print(f"{cog} cog has been loaded\n-----", flush=True)
                 except Exception as e:
                     embed.add_field(
-                        name=f"Failed to load {cog}.", value=e, inline=False
+                        name=f"Failed to load {cog}.", value=e, inline=True
                     )
                     print(f"Execption: {e}", flush=True)
         else:
@@ -82,12 +82,12 @@ class CogManager(commands.Cog):
                     try:
                         self.bot.load_extension(f"cogs.{cog}")
                         embed.add_field(
-                            name=f"Loaded {cog}!", value="Success!", inline=False
+                            name=f"Loaded {cog}!", value="Success!", inline=True
                         )
                         print(f"{cog} cog has been loaded\n-----", flush=True)
                     except Exception as e:
                         embed.add_field(
-                            name=f"Failed to load {cog}.", value=e, inline=False
+                            name=f"Failed to load {cog}.", value=e, inline=True
                         )
                         print(f"Execption: {e}", flush=True)
         await ctx.send(embed=embed)
@@ -100,7 +100,7 @@ class CogManager(commands.Cog):
             print(f"Don't ever unload {cog}", flush=True)
             embed = discord.Embed(title=f"Unloading {cog}")
             embed.add_field(
-                name=f"Not allowed to unload {cog}", value="Denied", inline=False
+                name=f"Not allowed to unload {cog}", value="Denied", inline=True
             )
             await ctx.send(embed=embed)
             return
@@ -110,12 +110,12 @@ class CogManager(commands.Cog):
                 try:
                     self.bot.unload_extension(f"cogs.{cog}")
                     embed.add_field(
-                        name=f"Unloaded {cog}!", value="Success!", inline=False
+                        name=f"Unloaded {cog}!", value="Success!", inline=True
                     )
                     print(f"{cog} cog has been unloaded\n-----", flush=True)
                 except Exception as e:
                     embed.add_field(
-                        name=f"Failed to unload {cog}.", value=e, inline=False
+                        name=f"Failed to unload {cog}.", value=e, inline=True
                     )
                     print(f"Execption: {e}", flush=True)
         else:
@@ -129,19 +129,19 @@ class CogManager(commands.Cog):
                         embed.add_field(
                             name=f"Not allowed to unload {cog}",
                             value="Denied",
-                            inline=False,
+                            inline=True,
                         )
                         print(f"Don't ever unload {cog}", flush=True)
                         continue
                     try:
                         self.bot.unload_extension(f"cogs.{cog}")
                         embed.add_field(
-                            name=f"Unloaded {cog}!", value="Success!", inline=False
+                            name=f"Unloaded {cog}!", value="Success!", inline=True
                         )
                         print(f"{cog} cog has been unloaded\n-----", flush=True)
                     except Exception as e:
                         embed.add_field(
-                            name=f"Failed to unload {cog}.", value=e, inline=False
+                            name=f"Failed to unload {cog}.", value=e, inline=True
                         )
                         print(f"Execption: {e}", flush=True)
         await ctx.send(embed=embed)
