@@ -113,7 +113,7 @@ class Leaderboard(commands.Cog):
     async def vrating(self, ctx, name=None, view_all=None):
         # if ctx.invoked_subcommand is None:
         discord_id = None
-        if not name or name == "all":
+        if not name or name == "all" or name == "me":
             discord_id = ctx.author.id
         view_all = view_all == "all" or name == "all"
 
@@ -142,24 +142,37 @@ class Leaderboard(commands.Cog):
         embed = make_embed("Versus ratings", status, standing, name, ctx.author.avatar_url, leaderboard_title, leaderboard)
         await ctx.send(embed=embed)
 
-    @commands.command(name="timetrial")
+    @commands.command(name="timetrial", aliases=["tt", "speedrun", "sr"])
     async def timetrial(self, ctx, race, time, cc):
+        race_data = get_race_name(race)
+        if not race_data:
+            await ctx.send(f"Sorry, could not find a track named {race}. Remember capital letters and put the name within quotation marks if it is a multi-word name.")
+            return
         name = ctx.author.name
         discord_id = ctx.author.id
-        race_name, race_info, status, standing, leaderboard_title, leaderboard = add_record(race, name, discord_id, time, cc)
-        print("back in timetrial", flush=True)
+        race_name = race_data["name"]
+        race_info, status, standing, leaderboard_title, leaderboards, category_name = add_record(race_data, name, discord_id, time, cc)
         status = race_info + "\n" + status
-        embed = make_embed(race_name, status, standing, name, ctx.author.avatar_url, leaderboard_title, leaderboard)
+        field_150 = {"name": leaderboard_title + "(150cc):", "value": leaderboards["150cc"]}
+        field_200 = {"name": leaderboard_title + "(200cc):", "value": leaderboards["200cc"]}
+        embed = make_embed(race_name, status, standing, name, ctx.author.avatar_url, field_150, field_200)
+        file = None
+        if category_name in ("tracks", "cups"):
+            icon_url = Path.cwd().joinpath("assets", category_name, f"{race_name}.png")
+            file = discord.File(icon_url, filename="image.png")
+            embed.set_thumbnail(url="attachment://image.png")
+        await ctx.send(embed=embed, file=file)
 
-        await ctx.send(embed=embed)
-
-def make_embed(title, status, standing, name, icon_url, leaderboard_title, leaderboard):
+def make_embed(title, status, standing, name, icon_url, field_1=None, field_2=None):
     embed = discord.Embed()
     embed.color = discord.Color.blue()
     embed.title = title
     embed.description = status + "\n" + standing
     embed.set_author(name=name)
-    embed.add_field(name=leaderboard_title, value=leaderboard)
+    if field_1:
+        embed.add_field(name=field_1["name"], value=field_1["value"])
+    if field_2:
+        embed.add_field(name=field_2["name"], value=field_2["value"])
     if icon_url:
         embed.set_author(name=name, icon_url=icon_url)
         embed.set_thumbnail(url=icon_url)
@@ -180,14 +193,6 @@ class Record():
         #     time[3] = time[3] + "0"
         self.time = datetime.datetime.strptime((":").join(time), "%H:%M:%S:%f").time()
         # should this be a time or a datetime object?
-
-        # hour, minute, second, millisecond = [int(t) for t in time]
-        # if millisecond < 1000:
-        #     microsecond = millisecond * 1000
-        # else:
-        #     microsecond = millisecond
-        # time = datetime.time(hour, minute, second, microsecond)
-        # self.time = time
 
     def time_to_str(self):
         # Only want the three first digits of the microseconds, not all six
@@ -215,25 +220,6 @@ class Record():
         name = record_dict["Name"]
         discord_id = record_dict["ID"]
         time = record_dict["Time"]
-        # time = time.split(".")
-        # if len(time) > 1:
-        #     time2 = time[1]
-        #     time = time[0].split(":")
-        #     time.append(time2)
-        # else:
-        #     time = time[0].split(":")
-        # time = time.replace(".", ":")
-        # time = time.split(":")
-        # # time = [int(t) for t in time]
-        # # print(time)
-        # if len(time) < 4:
-        #     # if len(time) < 3:
-        #     #     if len(time) < 2:
-        #     #         time.append("0")
-        #     #     time.append("0")
-        #     time.append("0")
-        # # print(time)
-        # time = (":").join(time)
         return cls(name, discord_id, time)
 
     @property
@@ -275,11 +261,13 @@ class VersusRating():
         v_rating["vr"] = self.vr
         return v_rating
 
-def add_record(race_name=None, name=None, discord_id=None, time=None, cc=None):
-    print("In add_record", flush=True)
-    if not race_name and not name and not time:
+def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
+    if not race_data and not name and not time:
         race_name, name, time, cc = [part.strip() for part in input("Shorthand for registering: (trackname/alias, name, time, cc):").split(",")]
-    race_name, category_name, category = get_race_name(race_name)
+    race_name = race_data["name"]
+    category_name = race_data["category_name"]
+    category = race_data["category_data"]
+    print(race_name, flush=True)
     if not race_name:
         return
     race = category[race_name]
@@ -289,10 +277,11 @@ def add_record(race_name=None, name=None, discord_id=None, time=None, cc=None):
         return
     cc = cc + "cc"
 
-    print("trying to make Record", flush=True)
+    # print("trying to make Record", flush=True)
     # TODO Record is not being made
     record = Record(name, discord_id, time)
-    print(record, flush=True)
+    # print(record, flush=True)
+    # print("Record made", flush=True)
 
     record_list = [Record.from_json(records) for records in race["Leaderboard"][cc]]
     for i, existing_record in enumerate(record_list):
@@ -313,33 +302,44 @@ def add_record(race_name=None, name=None, discord_id=None, time=None, cc=None):
             break
         if record.name == existing_record.name:
             print("Your previous record is better!")
-            status = "Your precious record is better!"
+            status = "Your previous record is better!"
             break
     else:
         record_list.append(record)
         print("You have the record!")
         status = "You have the record!"
     record_list.sort()
-    race["Leaderboard"][cc] = [{"Name": record.name, "Time": record.time_to_str()} for record in record_list]
-    race_info, standing, leaderboard_title, leaderboard = view_course_records(race_name, category, category_name, cc[:-2], name)
+    race["Leaderboard"][cc] = [record.json for record in record_list]
+    race_info, standing, leaderboard_title, leaderboards = view_course_records(race_name, category, category_name, cc[:-2], name)
     with open(Path.cwd().joinpath("data", category_name + ".json"), "w") as outfile:
         json.dump(category, outfile, indent=4)
 
     # TODO consider returning a dict instead for these fucntions
-    return race_name, race_info, status, standing, leaderboard_title, leaderboard
+    print(f"race_name: {race_name}, race_info: {race_info}, "
+          f"status: {status}, standing: {standing}, "
+          f"leaderboard_title: {leaderboard_title}, leaderboards: {leaderboards}, category_name: {category_name}", flush=True)
+    return race_info, status, standing, leaderboard_title, leaderboards, category_name
 
 def get_race_name(name):
+    print(name, flush=True)
+    result = {}
+    if CUPS.get(name.title()):
+        result["name"] = name.title()
+        result["category_name"] = "cups"
+        result["category_data"] = CUPS
+    if SPEED_RUN_CATEGORIES.get(name.title()):
+        result["name"] = name.title()
+        result["category_name"] = "speed_run_categories"
+        result["category_data"] = SPEED_RUN_CATEGORIES
     if ALIASES.get(name):
         name = ALIASES[name]
-    name = name.title()
+    else:
+        name = name.title()
     if TRACKS.get(name):
-        return name, "tracks", TRACKS
-    if CUPS.get(name):
-        return name, "cups", CUPS
-    if SPEED_RUN_CATEGORIES.get(name):
-        return name, "speed_run_categories", SPEED_RUN_CATEGORIES
-    print("Not valid track/cup/category name.")
-    return None, None, None
+        result["name"] = name
+        result["category_name"] = "tracks"
+        result["category_data"] = TRACKS
+    return result
 
 def get_cc(cc):
     valid_cc = ["150", "200"]
@@ -353,7 +353,10 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
     
     if not race_name or not category or not category_name or not cc:
         race_name, cc = [part.strip() for part in input("What track and cc? (trackname/alias, cc) ").split(",")]
-        race_name, category_name, category = get_race_name(race_name)
+        race_data = get_race_name(race_name)
+        race_name = race_data["name"]
+        category_name = race_data["category_name"]
+        category = race_data["category_data"]
     if not name:
         name = input("What is your name? ")
     if not race_name:
@@ -379,6 +382,8 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
         race_info = f"Cups: {(', ').join(race['Cups'])}"
 
     record_list = race["Leaderboard"][cc]
+    records = race["Leaderboard"]
+    print(records, flush=True)
     if not record_list:
         print("No records added yet!")
         return
@@ -404,19 +409,42 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
         standing = "You are not on the leaderboard yet."
 
     print(f"Top {places_to_display} results:")
-    leaderboard_title = f"Top {places_to_display} results ({cc}):"
-    
-    leaderboard = []
-    i = 1
-    print(f"{i}. {Record.from_json(record_list[0])}")
-    leaderboard.append("{i}. {Record.from_json(record_list[0])}")
-    for j in range(1, places_to_display):
-        if record_list[j - 1]["Time"] != record_list[j]["Time"]:
-            i = j + 1
-        print(f"{i}. {Record.from_json(record_list[j])}")
-        leaderboard.append(f"{i}. {Record.from_json(record_list[j])}")
-    
-    return race_info, standing, leaderboard_title, leaderboard
+    leaderboard_title = f"Top {places_to_display} results "
+
+    # leaderboard = []
+    # i = 1
+    # print(f"{i}. {Record.from_json(record_list[0])}")
+    # leaderboard.append(f"{i}. {Record.from_json(record_list[0])}")
+    # for j in range(1, places_to_display):
+    #     if record_list[j - 1]["Time"] != record_list[j]["Time"]:
+    #         i = j + 1
+    #     print(f"{i}. {Record.from_json(record_list[j])}")
+    #     leaderboard.append(f"{i}. {Record.from_json(record_list[j])}")
+    # leaderboard = "\n".join(leaderboard)
+
+    leaderboards = {}
+
+    print(records.items(), flush=True)
+    for key, record_list in records.items():
+        # leaderboards[key] = []
+        # leaderboards[key].append(f"{i}. {Record.from_json(record_list[0])}")
+        leaderboard = []
+        if not record_list:
+            leaderboard.append(f"No records for {key} yet!")
+        else:
+            i = 1
+            print(f"{i}. {Record.from_json(record_list[0])}")
+            leaderboard.append(f"{i}. {Record.from_json(record_list[0])}")
+            for j in range(1, places_to_display):
+                if record_list[j - 1]["Time"] != record_list[j]["Time"]:
+                    i = j + 1
+                print(f"{i}. {Record.from_json(record_list[j])}")
+                leaderboard.append(f"{i}. {Record.from_json(record_list[j])}")
+        leaderboard = "\n".join(leaderboard)
+        leaderboards[key] = leaderboard
+    print(leaderboards, flush=True)
+
+    return race_info, standing, leaderboard_title, leaderboards
 
 def count_personal_records(name=None):
     if not name:
@@ -542,7 +570,7 @@ def view_versus_rating(discord_id=None, vr_list=None, all_places=False):
         leaderboard.append(f"{i}. {vr_list[j]}")
 
     leaderboard = "\n".join(leaderboard)
-    
+
     return standing, leaderboard_title, leaderboard
 
 def setup(bot):
