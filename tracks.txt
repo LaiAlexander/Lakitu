@@ -3,7 +3,7 @@ Water Park
 Sweet Sweet Canyon
 Thwomp Ruins
 Mario Circuit
-Toad Harbor
+Toad Harbour
 Twisted Mansion
 Shy Guy Falls
 Sunshine Airport
@@ -11,7 +11,7 @@ Dolphin Shoals
 Electrodrome
 Mount Wario
 Cloudtop Cruise
-Bone-Dry Dunes
+Bone Dry Dunes
 Bowser's Castle
 Rainbow Road
 Wii Moo Moo Meadows
@@ -24,10 +24,10 @@ N64 Royal Raceway
 3DS DK Jungle
 DS Wario Stadium
 GCN Sherbet Land
-3DS Music Park
+3DS Melody Motorway
 N64 Yoshi Valley
 DS Tick-Tock Clock
-3DS Piranha Plant Slide
+3DS Piranha Plant Pipeway
 Wii Grumble Volcano
 N64 Rainbow Road
 GCN Yoshi Circuit
@@ -42,7 +42,7 @@ GCN Baby Park
 GBA Cheese Land
 Wild Woods
 Animal Crossing
-3DS Neo Bowser City
+3DS Koopa City
 GBA Ribbon Road
 Super Bell Subway
 Big Blue
