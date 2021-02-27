@@ -129,7 +129,8 @@ class Leaderboard(commands.Cog):
         standing, leaderboard_title, leaderboard = view_versus_rating(discord_id, all_places=view_all)
 
         status = ""
-        embed = make_embed("Versus ratings", status, standing, user.name, user.avatar_url, leaderboard_title, leaderboard)
+        leaderboard = {"name": leaderboard_title, "value": leaderboard}
+        embed = make_embed("Versus ratings", status, standing, user.name, user.avatar_url, leaderboard)
         await ctx.send(embed=embed)
 
     @vrating.command(name="update")
@@ -138,11 +139,11 @@ class Leaderboard(commands.Cog):
         discord_id = ctx.author.id
         print("!vr update", flush=True)
         status, standing, leaderboard_title, leaderboard = update_versus_rating(name, discord_id, vr)
-
-        embed = make_embed("Versus ratings", status, standing, name, ctx.author.avatar_url, leaderboard_title, leaderboard)
+        leaderboard = {"name": leaderboard_title, "value": leaderboard}
+        embed = make_embed("Versus ratings", status, standing, name, ctx.author.avatar_url, leaderboard)
         await ctx.send(embed=embed)
 
-    @commands.command(name="timetrial", aliases=["tt", "speedrun", "sr"])
+    @commands.group(name="timetrial", aliases=["tt", "speedrun", "sr"], invoke_without_command=True)
     async def timetrial(self, ctx, race, time, cc):
         race_data = get_race_name(race)
         if not race_data:
@@ -162,6 +163,25 @@ class Leaderboard(commands.Cog):
             file = discord.File(icon_url, filename="image.png")
             embed.set_thumbnail(url="attachment://image.png")
         await ctx.send(embed=embed, file=file)
+
+    @timetrial.command(name="myrecords")
+    async def my_records(self, ctx, list_records=None):
+        name = ctx.author.name
+        discord_id = ctx.author.id
+        count_150, count_200 = count_personal_records(discord_id)
+        standing = f"You have {count_150} records for 150cc and {count_200} records for 200cc."
+        if not list_records:  
+            embed = make_embed(f"{name}'s records", "", standing, name, ctx.author.avatar_url)
+        elif list_records.lower() == "list":
+           records = view_personal_records(discord_id)
+           field_150 = {"name": "150cc", "value": "\n".join(records["150cc"])}
+           field_200 = {"name": "200cc", "value": "\n".join(records["200cc"])}
+           embed = make_embed(f"{name}'s records", "", standing, name, ctx.author.avatar_url, field_150, field_200)
+        else:
+            await ctx.send(f"{list_records} is not a valid command.")
+            return
+        await ctx.send(embed=embed)
+
 
 def make_embed(title, status, standing, name, icon_url, field_1=None, field_2=None):
     embed = discord.Embed()
@@ -278,7 +298,6 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
     cc = cc + "cc"
 
     # print("trying to make Record", flush=True)
-    # TODO Record is not being made
     record = Record(name, discord_id, time)
     # print(record, flush=True)
     # print("Record made", flush=True)
@@ -423,9 +442,14 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
     # leaderboard = "\n".join(leaderboard)
 
     leaderboards = {}
+    leaderboard_titles = {}
 
     print(records.items(), flush=True)
     for key, record_list in records.items():
+        if len(record_list) < places_to_display:
+            places_to_display = len(record_list)
+        leaderboard_titles[key] = f"Top {places_to_display} results ({key})"
+        # TODO the above might not work yet, change affected code and test it.
         # leaderboards[key] = []
         # leaderboards[key].append(f"{i}. {Record.from_json(record_list[0])}")
         leaderboard = []
@@ -446,9 +470,9 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
 
     return race_info, standing, leaderboard_title, leaderboards
 
-def count_personal_records(name=None):
-    if not name:
-        name = input("What name? ")
+def count_personal_records(discord_id = None):
+    if not discord_id:
+        discord_id = input("What discord_id? ")
     count_150 = 0
     count_200 = 0
     categories = [TRACKS, CUPS, SPEED_RUN_CATEGORIES]
@@ -458,28 +482,32 @@ def count_personal_records(name=None):
             leaderboard = category[race]["Leaderboard"]
             for cc, records in leaderboard.items():
                 for record in records:
-                    if record["Name"] == name and cc == "150cc":
+                    if record["ID"] == discord_id and cc == "150cc":
                         count_150 += 1
-                    if record["Name"] == name and cc == "200cc":
+                    if record["ID"] == discord_id and cc == "200cc":
                         count_200 += 1
     print(f"150: {count_150} 200: {count_200}")
+    return count_150, count_200
 
-def view_personal_records():
-    name = input("What name?")
+def view_personal_records(discord_id = None):
+    # name = input("What name?")
     ccs = {"150cc": False, "200cc": False}
     categories = [TRACKS, CUPS, SPEED_RUN_CATEGORIES]
+    records = {"150cc": [], "200cc": []}
     for category in categories:
         for cc in ccs:
             for race in category:
                 leaderboard = category[race]["Leaderboard"]
                 if leaderboard[cc]:
-                    if leaderboard[cc][0]["Name"] == name:
+                    if leaderboard[cc][0]["ID"] == discord_id:
                         ccs[cc] = True
+                        records[cc].append(f"{race}")
                         print(f"{race} {cc}")
     
     for cc, value in ccs.items():
         if not value:
             print(f"You have no records for {cc}.")
+    return records
 
 def update_versus_rating(name=None, discord_id=None, v_rating=None):
     if not name or not v_rating:
@@ -571,6 +599,7 @@ def view_versus_rating(discord_id=None, vr_list=None, all_places=False):
 
     leaderboard = "\n".join(leaderboard)
 
+    # TODO Should just return a leaderboard dict, that can be directly used in make_embed()
     return standing, leaderboard_title, leaderboard
 
 def setup(bot):
