@@ -12,8 +12,8 @@ CUPS = [
     "Lightning",
     "Egg",
     "Triforce",
-    "Bell",
     "Crossing",
+    "Bell",
 ]
 SPEED_RUN_CATEGORIES = ["Nitro", "Retro", "Extra", "48"]
 CONSOLES = ["GBA", "N64", "SNES", "DS", "Wii", "3DS", "GCN"]
