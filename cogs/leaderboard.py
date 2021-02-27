@@ -27,89 +27,8 @@ class Leaderboard(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f"{self.__class__.__name__} cog has been loaded\n-----", flush=True)
-
-    @commands.command(name="updatevr", help="Update your VR")
-    async def update_vr(self, ctx, vr):        
-        name = ctx.author.name
-        discord_id = ctx.author.id
-        
-        print(repr(ctx.author))
-        print(ctx.author, flush=True)
-        print(ctx.message.author, flush=True)
-        print(ctx.author.name, flush=True)
-        print(ctx.author.id, flush=True)
-        print(type(ctx.author), flush=True)
-        print(type(ctx.message.author), flush=True)
-        # await ctx.author.mention()
-        print(ctx.author.mention, flush=True)
-        # await ctx.send(ctx.author.mention)
-        # await ctx.send(f"<@{ctx.author.id}>")
-
-        status, standing, leaderboard_title, leaderboard = update_versus_rating(name, discord_id, vr)
-        # await ctx.send(result)
-
-        embed = discord.Embed()
-        embed.color = discord.Color.blue()
-        embed.title = "Versus ratings"
-        embed.description = status + "\n" + standing
-        embed.set_author(name=name, icon_url=ctx.author.avatar_url)
-        embed.add_field(name=leaderboard_title, value=leaderboard)
-
-        await ctx.send(embed=embed)
-
-    @commands.command(name="myvr", help="View your VR")
-    async def my_vr(self, ctx, view_all=None):
-        name = ctx.author.name
-        discord_id = ctx.author.id
-
-        view_all = view_all == "all"
-
-        standing, leaderboard_title, leaderboard = view_versus_rating(discord_id, all_places=view_all)
-
-        embed = discord.Embed()
-        embed.color = discord.Color.blue()
-        embed.title = "Versus ratings"
-        embed.description = standing
-        embed.set_author(name=name, icon_url=ctx.author.avatar_url)
-        embed.add_field(name=leaderboard_title, value=leaderboard)
-
-        await ctx.send(embed=embed)
-
-    @commands.command(name="checkvr", help="View VR of anyone")
-    async def check_vr(self, ctx, name=None, view_all=None):
-        discord_id = ctx.author.id
-        view_all = view_all == "all" or name == "all"
-
-        for vr in VERSUS_RATINGS["vrs"]:
-            if vr["Name"] == name:
-                discord_id = vr["ID"]
-
-        guild = ctx.guild
-
-        print(discord_id, flush=True)
-        user = self.bot.get_user(discord_id)
-        user = guild.get_member(int(discord_id))
-
-        if not user:
-            print("Not user.", flush=True)
-        print(user, flush=True)
-        # print(user.id, flush=True)
-        # print(user.name, flush=True)
-        
-        standing, leaderboard_title, leaderboard = view_versus_rating(discord_id, all_places=view_all)
-
-        embed = discord.Embed()
-        embed.color = discord.Color.blue()
-        embed.title = "Versus ratings"
-        embed.description = standing
-        embed.set_author(name=name, icon_url=user.avatar_url)
-        embed.add_field(name=leaderboard_title, value=leaderboard)
-        print(user.avatar_url, flush=True)
-        embed.set_thumbnail(url=user.avatar_url)
-
-        await ctx.send(embed=embed)
     
-    @commands.group(name="vr", invoke_without_command=True)
+    @commands.group(name="vr", invoke_without_command=True, help="View the VR of a player. Name is the name of the player to search for, but name may also be 'me' for yourself or 'all' to view all players. You may also add 'all' at the end to view the complete list.")
     async def vrating(self, ctx, name=None, view_all=None):
         # if ctx.invoked_subcommand is None:
         discord_id = None
@@ -133,18 +52,18 @@ class Leaderboard(commands.Cog):
         embed = make_embed("Versus ratings", status, standing, user.name, user.avatar_url, leaderboard)
         await ctx.send(embed=embed)
 
-    @vrating.command(name="update")
+    @vrating.command(name="update", help="Update your VR.")
     async def update(self, ctx, vr):
         name = ctx.author.name
         discord_id = ctx.author.id
-        print("!vr update", flush=True)
         status, standing, leaderboard_title, leaderboard = update_versus_rating(name, discord_id, vr)
         leaderboard = {"name": leaderboard_title, "value": leaderboard}
         embed = make_embed("Versus ratings", status, standing, name, ctx.author.avatar_url, leaderboard)
         await ctx.send(embed=embed)
 
-    @commands.group(name="timetrial", aliases=["tt", "speedrun", "sr"], invoke_without_command=True)
+    @commands.group(name="timetrial", aliases=["tt", "speedrun", "sr"], invoke_without_command=True, help="Register a new time trial record, view your records or view the records of a course.")
     async def timetrial(self, ctx, race, time, cc):
+        # TODO should probaly make a Record here and pass it to add_record. Easier to tell the user what went wrong this wai, if anything.
         race_data = get_race_name(race)
         if not race_data:
             await ctx.send(f"Sorry, could not find a track named {race}. Remember capital letters and put the name within quotation marks if it is a multi-word name.")
@@ -164,7 +83,7 @@ class Leaderboard(commands.Cog):
             embed.set_thumbnail(url="attachment://image.png")
         await ctx.send(embed=embed, file=file)
 
-    @timetrial.command(name="myrecords")
+    @timetrial.command(name="myrecords", help="Counts how many records you currently have. Do '!timetrial myrecords list' if you want to see the list of all your records.")
     async def my_records(self, ctx, list_records=None):
         name = ctx.author.name
         discord_id = ctx.author.id
@@ -181,6 +100,29 @@ class Leaderboard(commands.Cog):
             await ctx.send(f"{list_records} is not a valid command.")
             return
         await ctx.send(embed=embed)
+    
+    @timetrial.command(name="info", help="View the records of a particular course.")
+    async def race_records(self, ctx, race_name, cc=None):
+        # TODO Should just return both 150 and 200 cc records.
+        # TODO Does not show anything if no records exists yet.
+        race_data = get_race_name(race_name)
+        if not race_data:
+            await ctx.send(f"Sorry, could not find a track named {race_name}. Remember capital letters and put the name within quotation marks if it is a multi-word name.")
+            return
+        ccs = ["150", "200"]
+        if cc not in ccs:
+            await ctx.send(f"Sorry, {cc} is not a valid cc. Enter 150 or 200.")
+            return
+        race_info, standing, leaderboard_title, leaderboards = view_course_records(race_data["name"], race_data["category_data"], race_data["category_name"], cc, ctx.author.name)
+        field_150 = {"name": leaderboard_title + "(150cc):", "value": leaderboards["150cc"]}
+        field_200 = {"name": leaderboard_title + "(200cc):", "value": leaderboards["200cc"]}
+        embed = make_embed(race_data["name"], race_info, standing, ctx.author.name, ctx.author.avatar_url, field_150, field_200)
+        file = None
+        if race_data["category_name"] in ("tracks", "cups"):
+            icon_url = Path.cwd().joinpath("assets", race_data["category_name"], f"{race_data['name']}.png")
+            file = discord.File(icon_url, filename="image.png")
+            embed.set_thumbnail(url="attachment://image.png")
+        await ctx.send(embed=embed, file=file)
 
 
 def make_embed(title, status, standing, name, icon_url, field_1=None, field_2=None):
@@ -287,7 +229,6 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
     race_name = race_data["name"]
     category_name = race_data["category_name"]
     category = race_data["category_data"]
-    print(race_name, flush=True)
     if not race_name:
         return
     race = category[race_name]
@@ -334,31 +275,34 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
         json.dump(category, outfile, indent=4)
 
     # TODO consider returning a dict instead for these fucntions
-    print(f"race_name: {race_name}, race_info: {race_info}, "
-          f"status: {status}, standing: {standing}, "
-          f"leaderboard_title: {leaderboard_title}, leaderboards: {leaderboards}, category_name: {category_name}", flush=True)
     return race_info, status, standing, leaderboard_title, leaderboards, category_name
 
 def get_race_name(name):
-    print(name, flush=True)
-    result = {}
-    if CUPS.get(name.title()):
-        result["name"] = name.title()
-        result["category_name"] = "cups"
-        result["category_data"] = CUPS
-    if SPEED_RUN_CATEGORIES.get(name.title()):
-        result["name"] = name.title()
-        result["category_name"] = "speed_run_categories"
-        result["category_data"] = SPEED_RUN_CATEGORIES
+    result = {}  
     if ALIASES.get(name):
         name = ALIASES[name]
-    else:
-        name = name.title()
     if TRACKS.get(name):
         result["name"] = name
         result["category_name"] = "tracks"
         result["category_data"] = TRACKS
-    return result
+        return result
+    name = name.title()
+    if TRACKS.get(name):
+        result["name"] = name
+        result["category_name"] = "tracks"
+        result["category_data"] = TRACKS
+        return result
+    if CUPS.get(name):
+        result["name"] = name
+        result["category_name"] = "cups"
+        result["category_data"] = CUPS
+        return result
+    if SPEED_RUN_CATEGORIES.get(name):
+        result["name"] = name
+        result["category_name"] = "speed_run_categories"
+        result["category_data"] = SPEED_RUN_CATEGORIES
+        return result
+    return None
 
 def get_cc(cc):
     valid_cc = ["150", "200"]
@@ -368,6 +312,7 @@ def get_cc(cc):
     return cc + "cc"
 
 def view_course_records(race_name=None, category=None, category_name=None, cc=None, name=None):
+    # TODO What happens when no records currently exist? Does not work as expected
     places_to_display = 5
     
     if not race_name or not category or not category_name or not cc:
@@ -388,21 +333,14 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
         return
 
     if category_name == "tracks":
-        print(f"{race_name} {cc}, {race['Cup']} cup, {race['Course']} course.")
-        print(f"Alias: {race['Alias']}")
         race_info = f"{race['Cup']} cup, {race['Course']} course.\nAlias: {race['Alias']}"
     elif category_name == "cups":
-        print(f"{race_name} cup, {race['Course']} courses.")
-        print(f"Tracks: {(', ').join(race['Tracks'])}")
         race_info = f"{race['Course']} courses.\nTracks: {(', ').join(race['Tracks'])}"
     elif category_name == "speed_run_categories":
-        print(f"Speed run category: {race_name}.")
-        print(f"Cups: {(', ').join(race['Cups'])}")
         race_info = f"Cups: {(', ').join(race['Cups'])}"
 
     record_list = race["Leaderboard"][cc]
     records = race["Leaderboard"]
-    print(records, flush=True)
     if not record_list:
         print("No records added yet!")
         return
@@ -486,11 +424,9 @@ def count_personal_records(discord_id = None):
                         count_150 += 1
                     if record["ID"] == discord_id and cc == "200cc":
                         count_200 += 1
-    print(f"150: {count_150} 200: {count_200}")
     return count_150, count_200
 
 def view_personal_records(discord_id = None):
-    # name = input("What name?")
     ccs = {"150cc": False, "200cc": False}
     categories = [TRACKS, CUPS, SPEED_RUN_CATEGORIES]
     records = {"150cc": [], "200cc": []}
@@ -612,4 +548,4 @@ if __name__ == '__main__':
     # view_personal_records()
     # print(update_versus_rating())
     # print(view_versus_rating(all_places=True))
-    # test_tuple()
+    
