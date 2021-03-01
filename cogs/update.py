@@ -16,6 +16,7 @@ class Updater(commands.Cog):
     @commands.is_owner()
     async def git_pull(self, ctx):
         status = git.cmd.Git().pull()
+        print(f"Pulling from Github...\n{status}")
         embed = discord.Embed(title="Pulling from Github")
         embed.add_field(name="Status:", value=status)
         await ctx.send(embed=embed)
@@ -27,7 +28,9 @@ class Updater(commands.Cog):
         await self.git_pull(ctx)
         await cog_manager.unload_cog(ctx)
         await cog_manager.load_cog(ctx)
-        await ctx.send("Finished updating bot.")
+        embed = discord.Embed(title="Update successful", description="The bot has been updated!")
+        print("Update successful!", flush=True)
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Updater(bot))
