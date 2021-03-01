@@ -63,10 +63,12 @@ class Updater(commands.Cog):
 
 def pip_install(module):
     # Unsure if it's "pip" or "pip3" on macOS
-    if sys.platform == "linux" or sys.platform == "darwin":
-        pip = "pip"
-    else:
-        pip = "pip"
+    # Does not seem to be necessary on linux, at least not on Ubuntu 20.04
+    # if sys.platform == "linux" or sys.platform == "darwin":
+    #     pip = "pip"
+    # else:
+    #     pip = "pip"
+    pip = "pip"
     print("In pip_install", flush=True)
     if module == "requirements.txt":
         args = [sys.executable, "-m", pip, "install", "-r", module]
@@ -84,6 +86,7 @@ def pip_install(module):
         print("Exception occured:", flush=True)
         print(exc, flush=True)
         exc_str = f"returncode: {exc.returncode}\ncmd: {exc.cmd}\n output: {exc.output}"
+        print(exc_str, flush=True)
         return exc_str
     print(result.stdout, flush=True)
     print(args, flush=True)
