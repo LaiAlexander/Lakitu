@@ -85,6 +85,7 @@ def pip_install(module):
         print(exc, flush=True)
         return exc
     print(result.stdout, flush=True)
+    print(args, flush=True)
     status = "Requirements successfully installed!\n-----\n" + result.stdout
     if len(status) > 1500:
         truncated = status[1500:]
