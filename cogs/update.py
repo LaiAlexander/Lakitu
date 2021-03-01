@@ -33,8 +33,8 @@ class Updater(commands.Cog):
                 print(modules_to_install, flush=True)
                 for module in modules_to_install:
                     print("Installing " + module, flush=True)
-                    pip_install(module)
-                    embed.add_field(name=module, value="New module has been installed")
+                    status = pip_install(module)
+                    embed.add_field(name=module, value=status)
             await ctx.send(embed=embed)
 
     @commands.command(name="update", help="Update bot", hidden=True)
