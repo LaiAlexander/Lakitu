@@ -64,7 +64,7 @@ class Updater(commands.Cog):
 def pip_install(module):
     # Unsure if it's "pip" or "pip3" on macOS
     if sys.platform == "linux" or sys.platform == "darwin":
-        pip = "pip3"
+        pip = "pip"
     else:
         pip = "pip"
     print("In pip_install", flush=True)
