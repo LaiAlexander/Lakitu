@@ -18,19 +18,24 @@ class Updater(commands.Cog):
     @commands.command(name="gitpull", help="Pull updates from github.", hidden=True)
     @commands.is_owner()
     async def git_pull(self, ctx):
-        status = git.cmd.Git().pull()
-        with open("requirements.txt", "r") as req:
-            req_list = [line.strip() for line in req.readlines()]
-        print(f"Pulling from Github...\n{status}")
-        with open("requirements.txt", "r") as req:
-            new_req_list = [line.strip() for line in req.readlines()]
-        modules_to_install = [module for module in new_req_list if module not in req_list]
-        embed = discord.Embed(title="Pulling from Github")
-        embed.add_field(name="Status:", value=status)
-        print("Installing requirements...", flush=True)
-        for module in modules_to_install:
-            pip_install(module)
-        await ctx.send(embed=embed)
+        async with ctx.typing():
+            with open("requirements.txt", "r") as req:
+                req_list = [line.strip() for line in req.readlines()]
+            status = git.cmd.Git().pull()
+            print(f"Pulling from Github...\n{status}")
+            with open("requirements.txt", "r") as req:
+                new_req_list = [line.strip() for line in req.readlines()]
+            modules_to_install = [module for module in new_req_list if module not in req_list]
+            embed = discord.Embed(title="Pulling from Github")
+            embed.add_field(name="Status:", value=status)  
+            if modules_to_install:
+                print("Installing requirements...", flush=True)
+                print(modules_to_install, flush=True)
+                for module in modules_to_install:
+                    print("Installing " + module, flush=True)
+                    pip_install(module)
+                    embed.add_field(name=module, value="New module has been installed")
+            await ctx.send(embed=embed)
 
     @commands.command(name="update", help="Update bot", hidden=True)
     @commands.is_owner()
@@ -45,11 +50,47 @@ class Updater(commands.Cog):
         print("Update successful!", flush=True)
         await ctx.send(embed=embed)
 
+    @commands.command(name="installreqs", help="Install requirements", hidden=True)
+    @commands.is_owner()
+    async def install_all_requirements(self, ctx):
+        async with ctx.typing():
+            embed = discord.Embed(title="Installing all requirements...")
+            await ctx.send(embed=embed)
+            status = pip_install("requirements.txt")
+            embed = discord.Embed(title="Status", description=status)
+            await ctx.send(embed=embed)
+
 
 def pip_install(module):
-    subprocess.check_call(
-        [sys.executable, "-m", "pip3", "install", "-r", module]
-    )
+    # Unsure if it's "pip" or "pip3" on macOS
+    if sys.platform == "linux" or sys.platform == "darwin":
+        pip = "pip3"
+    else:
+        pip = "pip"
+    print("In pip_install", flush=True)
+    if module == "requirements.txt":
+        args = [sys.executable, "-m", pip, "install", "-r", module]
+    else:
+        args = [sys.executable, "-m", pip, "install", module]
+    try:
+        result = subprocess.run(
+            args,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True
+        )
+    except subprocess.CalledProcessError as exc:
+        print("Exception occured:", flush=True)
+        print(exc, flush=True)
+        return exc
+    print(result.stdout, flush=True)
+    status = "Requirements successfully installed!\n-----\n" + result.stdout
+    if len(status) > 1500:
+        truncated = status[1500:]
+        status = status[:1500]
+        status = status + f"\n-----\nRest of message ({len(truncated)} characters) truncated."
+    return status
 
 
 def setup(bot):
