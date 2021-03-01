@@ -83,7 +83,8 @@ def pip_install(module):
     except subprocess.CalledProcessError as exc:
         print("Exception occured:", flush=True)
         print(exc, flush=True)
-        return str(exc)
+        exc_str = f"returncode: {exc.returncode}\ncmd: {exc.cmd}\n output: {exc.output}"
+        return exc_str
     print(result.stdout, flush=True)
     print(args, flush=True)
     status = "Requirements successfully installed!\n-----\n" + result.stdout
