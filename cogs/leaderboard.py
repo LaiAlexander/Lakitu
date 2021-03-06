@@ -28,7 +28,7 @@ class Leaderboard(commands.Cog):
     async def on_ready(self):
         print(f"{self.__class__.__name__} cog has been loaded\n-----", flush=True)
     
-    @commands.group(name="vr", invoke_without_command=True, help="View the VR of a player. Name is the name of the player to search for, but name may also be 'me' for yourself or 'all' to view all players. You may also add 'all' at the end to view the complete list.")
+    @commands.group(name="vr", aliases=["rr"], invoke_without_command=True, help="View the VR of a player. Name is the name of the player to search for, but name may also be 'me' for yourself or 'all' to view all players. You may also add 'all' at the end to view the complete list.")
     async def vrating(self, ctx, name=None, view_all=None):
         # if ctx.invoked_subcommand is None:
         discord_id = None
