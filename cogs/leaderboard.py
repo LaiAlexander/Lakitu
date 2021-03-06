@@ -124,7 +124,6 @@ class Leaderboard(commands.Cog):
             embed.set_thumbnail(url="attachment://image.png")
         await ctx.send(embed=embed, file=file)
 
-
 def make_embed(title, status, standing, name, icon_url, field_1=None, field_2=None):
     embed = discord.Embed()
     embed.color = discord.Color.blue()
@@ -238,10 +237,7 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
         return
     cc = cc + "cc"
 
-    # print("trying to make Record", flush=True)
     record = Record(name, discord_id, time)
-    # print(record, flush=True)
-    # print("Record made", flush=True)
 
     record_list = [Record.from_json(records) for records in race["Leaderboard"][cc]]
     for i, existing_record in enumerate(record_list):
@@ -313,8 +309,6 @@ def get_cc(cc):
 
 def view_course_records(race_name=None, category=None, category_name=None, cc=None, name=None):
     # TODO What happens when no records currently exist? Does not work as expected
-    places_to_display = 5
-    
     if not race_name or not category or not category_name or not cc:
         race_name, cc = [part.strip() for part in input("What track and cc? (trackname/alias, cc) ").split(",")]
         race_data = get_race_name(race_name)
@@ -384,6 +378,7 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
 
     print(records.items(), flush=True)
     for key, record_list in records.items():
+        places_to_display = 5
         if len(record_list) < places_to_display:
             places_to_display = len(record_list)
         leaderboard_titles[key] = f"Top {places_to_display} results ({key})"
@@ -548,4 +543,3 @@ if __name__ == '__main__':
     # view_personal_records()
     # print(update_versus_rating())
     # print(view_versus_rating(all_places=True))
-    
