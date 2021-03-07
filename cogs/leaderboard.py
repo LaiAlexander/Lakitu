@@ -89,13 +89,13 @@ class Leaderboard(commands.Cog):
         discord_id = ctx.author.id
         count_150, count_200 = count_personal_records(discord_id)
         standing = f"You have {count_150} records for 150cc and {count_200} records for 200cc."
-        if not list_records:  
+        if not list_records:
             embed = make_embed(f"{name}'s records", "", standing, name, ctx.author.avatar_url)
         elif list_records.lower() == "list":
-           records = view_personal_records(discord_id)
-           field_150 = {"name": "150cc", "value": "\n".join(records["150cc"])}
-           field_200 = {"name": "200cc", "value": "\n".join(records["200cc"])}
-           embed = make_embed(f"{name}'s records", "", standing, name, ctx.author.avatar_url, field_150, field_200)
+            records = view_personal_records(discord_id)
+            field_150 = {"name": "150cc", "value": records["150cc"]}
+            field_200 = {"name": "200cc", "value": records["200cc"]}
+            embed = make_embed(f"{name}'s records", "", standing, name, ctx.author.avatar_url, field_150, field_200)
         else:
             await ctx.send(f"{list_records} is not a valid command.")
             return
@@ -104,7 +104,7 @@ class Leaderboard(commands.Cog):
     @timetrial.command(name="info", help="View the records of a particular course.")
     async def race_records(self, ctx, race_name, cc=None):
         # TODO Should just return both 150 and 200 cc records.
-        # TODO Does not show anything if no records exists yet.
+        # TODO Does not show anything if no records exists yet. This is because of the embed
         race_data = get_race_name(race_name)
         if not race_data:
             await ctx.send(f"Sorry, could not find a track named {race_name}. Remember capital letters and put the name within quotation marks if it is a multi-word name.")
@@ -422,22 +422,28 @@ def count_personal_records(discord_id = None):
     return count_150, count_200
 
 def view_personal_records(discord_id = None):
-    ccs = {"150cc": False, "200cc": False}
     categories = [TRACKS, CUPS, SPEED_RUN_CATEGORIES]
     records = {"150cc": [], "200cc": []}
+
     for category in categories:
-        for cc in ccs:
-            for race in category:
-                leaderboard = category[race]["Leaderboard"]
-                if leaderboard[cc]:
-                    if leaderboard[cc][0]["ID"] == discord_id:
-                        ccs[cc] = True
-                        records[cc].append(f"{race}")
+        for race in category:
+            leaderboard = category[race]["Leaderboard"]
+            for cc, l_board in leaderboard.items():
+                if l_board:
+                    if l_board[0]["ID"] == discord_id:
+                        if category == CUPS:
+                            records[cc].append(f"{race} Cup")
+                        elif category == SPEED_RUN_CATEGORIES:
+                            records[cc].append(f"{race} Tracks")
+                        else:
+                            records[cc].append(f"{race}")
                         print(f"{race} {cc}")
-    
-    for cc, value in ccs.items():
-        if not value:
-            print(f"You have no records for {cc}.")
+
+    for key, value in records.items():
+        if len(value) > 0:
+            records[key] = "\n".join(value)
+        else:
+            records[key] = "No records yet!"
     return records
 
 def update_versus_rating(name=None, discord_id=None, v_rating=None):
