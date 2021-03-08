@@ -70,7 +70,12 @@ class Leaderboard(commands.Cog):
             return
         name = ctx.author.name
         discord_id = ctx.author.id
-        race_name = race_data["name"]
+        if race_data["category_name"] == "cups":
+            race_name = race_data["name"] + " Cup"
+        elif race_data["category_name"] == "speed_run_categories":
+            race_name = race_data["name"] + " Tracks"
+        else:
+            race_name = race_data["name"]
         race_info, status, standing, leaderboard_titles, leaderboards, category_name = add_record(race_data, name, discord_id, time, cc)
         status = race_info + "\n" + status
         field_150 = {"name": leaderboard_titles["150cc"], "value": leaderboards["150cc"]}
@@ -108,10 +113,17 @@ class Leaderboard(commands.Cog):
         if not race_data:
             await ctx.send(f"Sorry, could not find a track named `{race_name}`. Remember capital letters and put the name within quotation marks if it is a multi-word name.\nExample: `!tt info \"SNES Donut Plains 3\"`")
             return
+        if race_data["category_name"] == "cups":
+            race_name = race_data["name"] + " Cup"
+        elif race_data["category_name"] == "speed_run_categories":
+            race_name = race_data["name"] + " Tracks"
+        else:
+            race_name = race_data["name"]
         race_info, standing, leaderboard_titles, leaderboards = view_course_records(race_data["name"], race_data["category_data"], race_data["category_name"], ctx.author.name)
         field_150 = {"name": leaderboard_titles["150cc"], "value": leaderboards["150cc"]}
         field_200 = {"name": leaderboard_titles["200cc"], "value": leaderboards["200cc"]}
-        embed = make_embed(race_data["name"], race_info, standing, ctx.author.name, ctx.author.avatar_url, field_150, field_200)
+        
+        embed = make_embed(race_name, race_info, standing, ctx.author.name, ctx.author.avatar_url, field_150, field_200)
         file = None
         if race_data["category_name"] in ("tracks", "cups"):
             icon_url = Path.cwd().joinpath("assets", race_data["category_name"], f"{race_data['name']}.png")
@@ -269,7 +281,7 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
     return race_info, status, standing, leaderboard_titles, leaderboards, category_name
 
 def get_race_data(name):
-    result = {}  
+    result = {}
     if ALIASES.get(name):
         name = ALIASES[name]
     if TRACKS.get(name):
