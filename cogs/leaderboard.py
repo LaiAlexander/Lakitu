@@ -64,7 +64,7 @@ class Leaderboard(commands.Cog):
     @commands.group(name="timetrial", aliases=["tt", "speedrun", "sr"], invoke_without_command=True, help="Register a new time trial record, view your records or view the records of a course.")
     async def timetrial(self, ctx, race, time, cc):
         # TODO should probaly make a Record here and pass it to add_record. Easier to tell the user what went wrong this wai, if anything.
-        race_data = get_race_name(race)
+        race_data = get_race_data(race)
         if not race_data:
             await ctx.send(f"Sorry, could not find a track named {race}. Remember capital letters and put the name within quotation marks if it is a multi-word name.")
             return
@@ -102,18 +102,13 @@ class Leaderboard(commands.Cog):
         await ctx.send(embed=embed)
     
     @timetrial.command(name="info", help="View the records of a particular course.")
-    async def race_records(self, ctx, race_name, cc=None):
+    async def race_records(self, ctx, race_name):
         # TODO Should just return both 150 and 200 cc records.
-        # TODO Does not show anything if no records exists yet. This is because of the embed
-        race_data = get_race_name(race_name)
+        race_data = get_race_data(race_name)
         if not race_data:
-            await ctx.send(f"Sorry, could not find a track named {race_name}. Remember capital letters and put the name within quotation marks if it is a multi-word name.")
+            await ctx.send(f"Sorry, could not find a track named `{race_name}`. Remember capital letters and put the name within quotation marks if it is a multi-word name.\nExample: `!tt info \"SNES Donut Plains 3\"`")
             return
-        ccs = ["150", "200"]
-        if cc not in ccs:
-            await ctx.send(f"Sorry, {cc} is not a valid cc. Enter 150 or 200.")
-            return
-        race_info, standing, leaderboard_titles, leaderboards = view_course_records(race_data["name"], race_data["category_data"], race_data["category_name"], cc, ctx.author.name)
+        race_info, standing, leaderboard_titles, leaderboards = view_course_records(race_data["name"], race_data["category_data"], race_data["category_name"], ctx.author.name)
         field_150 = {"name": leaderboard_titles["150cc"], "value": leaderboards["150cc"]}
         field_200 = {"name": leaderboard_titles["200cc"], "value": leaderboards["200cc"]}
         embed = make_embed(race_data["name"], race_info, standing, ctx.author.name, ctx.author.avatar_url, field_150, field_200)
@@ -266,14 +261,14 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
         status = "You have the record!"
     record_list.sort()
     race["Leaderboard"][cc] = [record.json for record in record_list]
-    race_info, standing, leaderboard_titles, leaderboards = view_course_records(race_name, category, category_name, cc[:-2], name)
+    race_info, standing, leaderboard_titles, leaderboards = view_course_records(race_name, category, category_name, name)
     with open(Path.cwd().joinpath("data", category_name + ".json"), "w") as outfile:
         json.dump(category, outfile, indent=4)
 
     # TODO consider returning a dict instead for these fucntions
     return race_info, status, standing, leaderboard_titles, leaderboards, category_name
 
-def get_race_name(name):
+def get_race_data(name):
     result = {}  
     if ALIASES.get(name):
         name = ALIASES[name]
@@ -307,10 +302,10 @@ def get_cc(cc):
         return None
     return cc + "cc"
 
-def view_course_records(race_name=None, category=None, category_name=None, cc=None, name=None):
-    if not race_name or not category or not category_name or not cc:
-        race_name, cc = [part.strip() for part in input("What track and cc? (trackname/alias, cc) ").split(",")]
-        race_data = get_race_name(race_name)
+def view_course_records(race_name=None, category=None, category_name=None, name=None):
+    if not race_name or not category or not category_name:
+        race_name = input("What track? (trackname/alias) ")
+        race_data = get_race_data(race_name)
         race_name = race_data["name"]
         category_name = race_data["category_name"]
         category = race_data["category_data"]
@@ -320,10 +315,6 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
         return
 
     race = category[race_name]
-
-    cc = get_cc(cc)
-    if not cc:
-        return
 
     if category_name == "tracks":
         race_info = f"{race['Cup']} cup, {race['Course']} course.\nAlias: {race['Alias']}"
