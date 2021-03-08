@@ -71,10 +71,10 @@ class Leaderboard(commands.Cog):
         name = ctx.author.name
         discord_id = ctx.author.id
         race_name = race_data["name"]
-        race_info, status, standing, leaderboard_title, leaderboards, category_name = add_record(race_data, name, discord_id, time, cc)
+        race_info, status, standing, leaderboard_titles, leaderboards, category_name = add_record(race_data, name, discord_id, time, cc)
         status = race_info + "\n" + status
-        field_150 = {"name": leaderboard_title + "(150cc):", "value": leaderboards["150cc"]}
-        field_200 = {"name": leaderboard_title + "(200cc):", "value": leaderboards["200cc"]}
+        field_150 = {"name": leaderboard_titles["150cc"], "value": leaderboards["150cc"]}
+        field_200 = {"name": leaderboard_titles["200cc"], "value": leaderboards["200cc"]}
         embed = make_embed(race_name, status, standing, name, ctx.author.avatar_url, field_150, field_200)
         file = None
         if category_name in ("tracks", "cups"):
@@ -113,9 +113,9 @@ class Leaderboard(commands.Cog):
         if cc not in ccs:
             await ctx.send(f"Sorry, {cc} is not a valid cc. Enter 150 or 200.")
             return
-        race_info, standing, leaderboard_title, leaderboards = view_course_records(race_data["name"], race_data["category_data"], race_data["category_name"], cc, ctx.author.name)
-        field_150 = {"name": leaderboard_title + "(150cc):", "value": leaderboards["150cc"]}
-        field_200 = {"name": leaderboard_title + "(200cc):", "value": leaderboards["200cc"]}
+        race_info, standing, leaderboard_titles, leaderboards = view_course_records(race_data["name"], race_data["category_data"], race_data["category_name"], cc, ctx.author.name)
+        field_150 = {"name": leaderboard_titles["150cc"], "value": leaderboards["150cc"]}
+        field_200 = {"name": leaderboard_titles["200cc"], "value": leaderboards["200cc"]}
         embed = make_embed(race_data["name"], race_info, standing, ctx.author.name, ctx.author.avatar_url, field_150, field_200)
         file = None
         if race_data["category_name"] in ("tracks", "cups"):
@@ -266,12 +266,12 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
         status = "You have the record!"
     record_list.sort()
     race["Leaderboard"][cc] = [record.json for record in record_list]
-    race_info, standing, leaderboard_title, leaderboards = view_course_records(race_name, category, category_name, cc[:-2], name)
+    race_info, standing, leaderboard_titles, leaderboards = view_course_records(race_name, category, category_name, cc[:-2], name)
     with open(Path.cwd().joinpath("data", category_name + ".json"), "w") as outfile:
         json.dump(category, outfile, indent=4)
 
     # TODO consider returning a dict instead for these fucntions
-    return race_info, status, standing, leaderboard_title, leaderboards, category_name
+    return race_info, status, standing, leaderboard_titles, leaderboards, category_name
 
 def get_race_name(name):
     result = {}  
@@ -308,7 +308,6 @@ def get_cc(cc):
     return cc + "cc"
 
 def view_course_records(race_name=None, category=None, category_name=None, cc=None, name=None):
-    # TODO What happens when no records currently exist? Does not work as expected
     if not race_name or not category or not category_name or not cc:
         race_name, cc = [part.strip() for part in input("What track and cc? (trackname/alias, cc) ").split(",")]
         race_data = get_race_name(race_name)
@@ -333,45 +332,24 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
     elif category_name == "speed_run_categories":
         race_info = f"Cups: {(', ').join(race['Cups'])}"
 
-    record_list = race["Leaderboard"][cc]
     records = race["Leaderboard"]
-    if not record_list:
-        print("No records added yet!")
-        return
 
-    # record_list_150 = race["Leaderboard"]["150cc"]
-    # record_list_200 = race["Leaderboard"]["200cc"]
-
-    if len(record_list) < places_to_display:
-        places_to_display = len(record_list)
-
-
-    for i , record in enumerate(record_list):
-        if record["Name"] == name:
-            if i == 0:
-                print(f"You are in {i + 1}. place!")
-                standing = f"You are in {i + 1}. place!"
-            else:
-                print(f"You are in {i + 1}. place, behind {record_list[i - 1]['Name']}.")
-                standing = f"You are in {i + 1}. place, behind {record_list[i - 1]['Name']}."
-            break
-    else:
-        print("You are not on the leaderboard yet.")
-        standing = "You are not on the leaderboard yet."
-
-    print(f"Top {places_to_display} results:")
-    leaderboard_title = f"Top {places_to_display} results "
-
-    # leaderboard = []
-    # i = 1
-    # print(f"{i}. {Record.from_json(record_list[0])}")
-    # leaderboard.append(f"{i}. {Record.from_json(record_list[0])}")
-    # for j in range(1, places_to_display):
-    #     if record_list[j - 1]["Time"] != record_list[j]["Time"]:
-    #         i = j + 1
-    #     print(f"{i}. {Record.from_json(record_list[j])}")
-    #     leaderboard.append(f"{i}. {Record.from_json(record_list[j])}")
-    # leaderboard = "\n".join(leaderboard)
+    standing = ["----------"]
+    for cubic, record_list in records.items():
+        print(f"{cubic}:")
+        for i , record in enumerate(record_list):
+            if record["Name"] == name:
+                if i == 0:
+                    print(f"{cubic}: You are in {i + 1}. place!")
+                    standing.append(f"**{cubic}**: You are in {i + 1}. place!")
+                else:
+                    print(f"{cubic}: You are in {i + 1}. place, behind {record_list[i - 1]['Name']}.")
+                    standing.append(f"**{cubic}**: You are in {i + 1}. place, behind {record_list[i - 1]['Name']}.")
+                break
+        else:
+            print(f"{cubic}: You are not on the leaderboard yet.")
+            standing.append(f"**{cubic}**: You are not on the leaderboard yet.")
+    standing = "\n".join(standing)
 
     leaderboards = {}
     leaderboard_titles = {}
@@ -381,10 +359,11 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
         places_to_display = 5
         if len(record_list) < places_to_display:
             places_to_display = len(record_list)
-        leaderboard_titles[key] = f"Top {places_to_display} results ({key})"
-        # TODO the above might not work yet, change affected code and test it.
-        # leaderboards[key] = []
-        # leaderboards[key].append(f"{i}. {Record.from_json(record_list[0])}")
+        if places_to_display > 0:
+            leaderboard_titles[key] = f"Top {places_to_display} results ({key})"
+        else:
+            leaderboard_titles[key] = f"Top results ({key})"
+
         leaderboard = []
         if not record_list:
             leaderboard.append(f"No records for {key} yet!")
@@ -401,7 +380,7 @@ def view_course_records(race_name=None, category=None, category_name=None, cc=No
         leaderboards[key] = leaderboard
     print(leaderboards, flush=True)
 
-    return race_info, standing, leaderboard_title, leaderboards
+    return race_info, standing, leaderboard_titles, leaderboards
 
 def count_personal_records(discord_id = None):
     if not discord_id:
