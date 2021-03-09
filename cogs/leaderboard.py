@@ -27,7 +27,7 @@ class Leaderboard(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f"{self.__class__.__name__} cog has been loaded\n-----", flush=True)
-    
+
     @commands.group(name="vr", aliases=["rr"], invoke_without_command=True, help="View the VR of a player. Name is the name of the player to search for, but name may also be 'me' for yourself or 'all' to view all players. You may also add 'all' at the end to view the complete list.")
     async def vrating(self, ctx, name=None, view_all=None):
         # if ctx.invoked_subcommand is None:
@@ -63,7 +63,7 @@ class Leaderboard(commands.Cog):
 
     @commands.group(name="timetrial", aliases=["tt", "speedrun", "sr"], invoke_without_command=True, help="Register a new time trial record, view your records or view the records of a course.")
     async def timetrial(self, ctx, race, time, cc):
-        # TODO should probaly make a Record here and pass it to add_record. Easier to tell the user what went wrong this wai, if anything.
+        # TODO should probaly make a Record here and pass it to add_record. Easier to tell the user what went wrong this way, if anything.
         race_data = get_race_data(race)
         if not race_data:
             await ctx.send(f"Sorry, could not find a track named {race}. Remember capital letters and put the name within quotation marks if it is a multi-word name.")
@@ -76,14 +76,14 @@ class Leaderboard(commands.Cog):
             race_name = race_data["name"] + " Tracks"
         else:
             race_name = race_data["name"]
-        race_info, status, standing, leaderboard_titles, leaderboards, category_name = add_record(race_data, name, discord_id, time, cc)
+        race_info, status, standing, leaderboard_titles, leaderboards = add_record(race_data, name, discord_id, time, cc)
         status = race_info + "\n" + status
         field_150 = {"name": leaderboard_titles["150cc"], "value": leaderboards["150cc"]}
         field_200 = {"name": leaderboard_titles["200cc"], "value": leaderboards["200cc"]}
         embed = make_embed(race_name, status, standing, name, ctx.author.avatar_url, field_150, field_200)
         file = None
-        if category_name in ("tracks", "cups"):
-            icon_url = Path.cwd().joinpath("assets", category_name, f"{race_name}.png")
+        if race_data["category_name"] in ("tracks", "cups"):
+            icon_url = Path.cwd().joinpath("assets", race_data["category_name"], f"{race_name}.png")
             file = discord.File(icon_url, filename="image.png")
             embed.set_thumbnail(url="attachment://image.png")
         await ctx.send(embed=embed, file=file)
@@ -105,10 +105,9 @@ class Leaderboard(commands.Cog):
             await ctx.send(f"{list_records} is not a valid command.")
             return
         await ctx.send(embed=embed)
-    
+
     @timetrial.command(name="info", help="View the records of a particular course.")
     async def race_records(self, ctx, race_name):
-        # TODO Should just return both 150 and 200 cc records.
         race_data = get_race_data(race_name)
         if not race_data:
             await ctx.send(f"Sorry, could not find a track named `{race_name}`. Remember capital letters and put the name within quotation marks if it is a multi-word name.\nExample: `!tt info \"SNES Donut Plains 3\"`")
@@ -122,7 +121,6 @@ class Leaderboard(commands.Cog):
         race_info, standing, leaderboard_titles, leaderboards = view_course_records(race_data["name"], race_data["category_data"], race_data["category_name"], ctx.author.name)
         field_150 = {"name": leaderboard_titles["150cc"], "value": leaderboards["150cc"]}
         field_200 = {"name": leaderboard_titles["200cc"], "value": leaderboards["200cc"]}
-        
         embed = make_embed(race_name, race_info, standing, ctx.author.name, ctx.author.avatar_url, field_150, field_200)
         file = None
         if race_data["category_name"] in ("tracks", "cups"):
@@ -278,7 +276,7 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
         json.dump(category, outfile, indent=4)
 
     # TODO consider returning a dict instead for these fucntions
-    return race_info, status, standing, leaderboard_titles, leaderboards, category_name
+    return race_info, status, standing, leaderboard_titles, leaderboards
 
 def get_race_data(name):
     result = {}
