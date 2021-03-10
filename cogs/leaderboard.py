@@ -326,30 +326,29 @@ def view_course_records(race_name=None, category=None, category_name=None, name=
 
     race = category[race_name]
 
-    if category_name == "tracks":
+    if category_name.endswith("tracks"):
         race_info = f"{race['Cup']} cup, {race['Course']} course.\nAlias: {race['Alias']}"
-    elif category_name == "cups":
+    elif category_name.endswith("cups"):
         race_info = f"{race['Course']} courses.\nTracks: {(', ').join(race['Tracks'])}"
-    elif category_name == "speed_run_categories":
+    elif category_name.endswith("speed_run_categories"):
         race_info = f"Cups: {(', ').join(race['Cups'])}"
 
     records = race["Leaderboard"]
 
     standing = ["----------"]
-    for cubic, record_list in records.items():
-        print(f"{cubic}:")
+    for cc, record_list in records.items():
         for i , record in enumerate(record_list):
             if record["Name"] == name:
                 if i == 0:
-                    print(f"{cubic}: You are in {i + 1}. place!")
-                    standing.append(f"**{cubic}**: You are in {i + 1}. place!")
+                    print(f"{cc}: You are in {i + 1}. place!")
+                    standing.append(f"**{cc}**: You are in {i + 1}. place!")
                 else:
-                    print(f"{cubic}: You are in {i + 1}. place, behind {record_list[i - 1]['Name']}.")
-                    standing.append(f"**{cubic}**: You are in {i + 1}. place, behind {record_list[i - 1]['Name']}.")
+                    print(f"{cc}: You are in {i + 1}. place, behind {record_list[i - 1]['Name']}.")
+                    standing.append(f"**{cc}**: You are in {i + 1}. place, behind {record_list[i - 1]['Name']}.")
                 break
         else:
-            print(f"{cubic}: You are not on the leaderboard yet.")
-            standing.append(f"**{cubic}**: You are not on the leaderboard yet.")
+            print(f"{cc}: You are not on the leaderboard yet.")
+            standing.append(f"**{cc}**: You are not on the leaderboard yet.")
     standing = "\n".join(standing)
 
     leaderboards = {}
@@ -383,7 +382,7 @@ def view_course_records(race_name=None, category=None, category_name=None, name=
 
     return race_info, standing, leaderboard_titles, leaderboards
 
-def count_personal_records(discord_id = None):
+def count_personal_records(discord_id=None):
     if not discord_id:
         discord_id = input("What discord_id? ")
     count_150 = 0
@@ -401,7 +400,7 @@ def count_personal_records(discord_id = None):
                         count_200 += 1
     return count_150, count_200
 
-def view_personal_records(discord_id = None):
+def view_personal_records(discord_id=None):
     categories = [TRACKS, CUPS, SPEED_RUN_CATEGORIES]
     records = {"150cc": [], "200cc": []}
 
