@@ -1,0 +1,53 @@
+{
+    "Mushroom": {
+        "Tracks": [
+            "Mario Kart Stadium",
+            "Water Park",
+            "Sweet Sweet Canyon",
+            "Thwomp Ruins"
+        ],
+        "Course": "Nitro",
+        "Leaderboard": {
+            "150cc": [
+                {
+                    "Name": "Roger",
+                    "ID": 309056,
+                    "Time": "12:12.118"
+                }
+            ],
+            "200cc": []
+        }
+    },
+    "Flower": {
+        "Tracks": [
+            "Mario Circuit",
+            "Toad Harbor",
+            "Twisted Mansion",
+            "Shy Guy Falls"
+        ],
+        "Course": "Nitro",
+        "Leaderboard": {
+            "150cc": [
+                {
+                    "Name": "Tim",
+                    "ID": 895961,
+                    "Time": "11:04.496"
+                }
+            ],
+            "200cc": []
+        }
+    },
+    "Star": {
+        "Tracks": [
+            "Sunshine Airport",
+            "Dolphin Shoals",
+            "Electrodrome",
+            "Mount Wario"
+        ],
+        "Course": "Nitro",
+        "Leaderboard": {
+            "150cc": [],
+            "200cc": []
+        }
+    }
+}

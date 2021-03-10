@@ -1,0 +1,87 @@
+{
+    "Mario Kart Stadium": {
+        "Cup": "Mushroom",
+        "Course": "Nitro",
+        "Alias": "makast",
+        "Leaderboard": {
+            "150cc": [
+                {
+                    "Name": "Tim",
+                    "ID": 895961,
+                    "Time": "01:02.496"
+                },
+                {
+                    "Name": "Kate",
+                    "ID": 577201,
+                    "Time": "01:37.123"
+                },
+                {
+                    "Name": "Mary",
+                    "ID": 724993,
+                    "Time": "01:39.000"
+                }
+            ],
+            "200cc": [
+                {
+                    "Name": "Mary",
+                    "ID": 724993,
+                    "Time": "01:39.000"
+                }
+            ]
+        }
+    },
+    "Water Park": {
+        "Cup": "Mushroom",
+        "Course": "Nitro",
+        "Alias": "wapa",
+        "Leaderboard": {
+            "150cc": [],
+            "200cc": []
+        }
+    },
+    "Sweet Sweet Canyon": {
+        "Cup": "Mushroom",
+        "Course": "Nitro",
+        "Alias": "swswca",
+        "Leaderboard": {
+            "150cc": [],
+            "200cc": []
+        }
+    },
+    "GBA Mario Circuit": {
+        "Cup": "Shell",
+        "Course": "Retro",
+        "Alias": "r-maci",
+        "Leaderboard": {
+            "150cc": [],
+            "200cc": []
+        }
+    },
+    "DS Cheep Cheep Beach": {
+        "Cup": "Shell",
+        "Course": "Retro",
+        "Alias": "r-chchbe",
+        "Leaderboard": {
+            "150cc": [],
+            "200cc": []
+        }
+    },
+    "Super Bell Subway": {
+        "Cup": "Crossing",
+        "Course": "Extra",
+        "Alias": "e-subesu",
+        "Leaderboard": {
+            "150cc": [],
+            "200cc": []
+        }
+    },
+    "Big Blue": {
+        "Cup": "Crossing",
+        "Course": "Extra",
+        "Alias": "e-bibl",
+        "Leaderboard": {
+            "150cc": [],
+            "200cc": []
+        }
+    }
+}

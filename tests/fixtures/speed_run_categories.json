@@ -1,0 +1,64 @@
+{
+    "Nitro": {
+        "Cups": [
+            "Mushroom",
+            "Flower",
+            "Star",
+            "Special"
+        ],
+        "Leaderboard": {
+            "150cc": [
+                {
+                    "Name": "Dan",
+                    "ID": 895961,
+                    "Time": "10:12.213"
+                }
+            ],
+            "200cc": []
+        }
+    },
+    "Retro": {
+        "Cups": [
+            "Shell",
+            "Banana",
+            "Leaf",
+            "Lightning"
+        ],
+        "Leaderboard": {
+            "150cc": [],
+            "200cc": []
+        }
+    },
+    "Extra": {
+        "Cups": [
+            "Egg",
+            "Triforce",
+            "Bell",
+            "Crossing"
+        ],
+        "Leaderboard": {
+            "150cc": [],
+            "200cc": []
+        }
+    },
+    "48": {
+        "Cups": [
+            "Mushroom",
+            "Flower",
+            "Star",
+            "Special",
+            "Shell",
+            "Banana",
+            "Leaf",
+            "Lightning",
+            "Egg",
+            "Triforce",
+            "Bell",
+            "Crossing"
+        ],
+        "Leaderboard": {
+            "150cc": [],
+            "200cc": []
+        }
+    }
+}
