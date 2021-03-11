@@ -27,7 +27,12 @@ class TestLeaderboard(unittest.TestCase):
 
         Path("data").mkdir(exist_ok=True)
 
+    def test_make_embed(self):
+        # TODO implement this
+        pass
+
     def test_Record(self):
+        # TODO test the rest of the methods
         test_record_1 = leaderboard.Record("John", 123189, "1:2:139")
         test_record_2 = leaderboard.Record("John", 123121, "1:2.139")
         self.assertEqual(test_record_1, test_record_2)
@@ -47,6 +52,7 @@ class TestLeaderboard(unittest.TestCase):
         self.assertLess(test_record_4, test_record_1)
 
     def test_VersusRating(self):
+        # TODO test the rest of the methods
         test_vr_1 = leaderboard.VersusRating("Roger", 123189, 1500)
         test_vr_2 = leaderboard.VersusRating("Liz", 123121, 1500)
         self.assertEqual(test_vr_1, test_vr_2)
@@ -70,6 +76,19 @@ class TestLeaderboard(unittest.TestCase):
         self.assertEqual(leaderboards, leaderboards_correct)
         Path.cwd().joinpath("data", race_data["category_name"] + ".json").unlink()
 
+    def test_get_race_data(self):
+        # TODO implement this
+        pass
+
+    def test_get_cc(self):
+        self.assertEqual(leaderboard.get_cc("150"), "150cc")
+        self.assertEqual(leaderboard.get_cc("200"), "200cc")
+        self.assertEqual(leaderboard.get_cc("300"), None)
+
+    def test_view_course_records(self):
+        # TODO implement this
+        pass
+
     # Not currently working, may be better to rewrite count_personal_records a bit.
     # def test_count_personal_records(self):
     #     count_pr = leaderboard.count_personal_records
@@ -77,6 +96,21 @@ class TestLeaderboard(unittest.TestCase):
     #     count_150, count_200 = count_pr(895961)
     #     self.assertEqual(count_150, 2)
     #     self.assertEqual(count_200, 0)
+    def test_count_personal_recoards(self):
+        # TODO implement this
+        pass
+
+    def test_view_personal_records(self):
+        # TODO implement this
+        pass
+
+    def test_update_versus_rating(self):
+        # TODO implement this
+        pass
+
+    def test_view_versus_rating(self):
+        # TODO implement this
+        pass
 
 if __name__ == '__main__':
     unittest.main()
