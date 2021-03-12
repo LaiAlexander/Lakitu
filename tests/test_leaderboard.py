@@ -109,6 +109,40 @@ class TestLeaderboard(unittest.TestCase):
 
     def test_add_record(self):
         race_data = {}
+        race_data["name"] = "Star"
+        race_data["category_name"] = "test_cups"
+        race_data["category_data"] = self.cups
+        (
+            race_info,
+            status,
+            standing,
+            leaderboard_titles,
+            leaderboards,
+        ) = leaderboard.add_record(race_data, "Dan", 895961, "10:05.213", "150")
+        race_info_correct = (
+            "Nitro courses.\n"
+            "Tracks: Sunshine Airport, Dolphin Shoals, Electrodrome, Mount Wario"
+        )
+        status_correct = "You have the record!"
+        standing_correct = (
+            "----------\n**150cc**: You are in 1. place!"
+            "\n**200cc**: You are not on the leaderboard yet."
+        )
+        leaderboard_titles_correct = {
+            "150cc": "Top 1 results (150cc)",
+            "200cc": "Top results (200cc)",
+        }
+        leaderboards_correct = {
+            "150cc": "1. Dan: 10:05.213",
+            "200cc": "No records for 200cc yet!",
+        }
+        self.assertEqual(race_info, race_info_correct)
+        self.assertEqual(status, status_correct)
+        self.assertEqual(standing, standing_correct)
+        self.assertEqual(leaderboard_titles, leaderboard_titles_correct)
+        self.assertEqual(leaderboards, leaderboards_correct)
+
+        race_data = {}
         race_data["name"] = "Nitro"
         race_data["category_name"] = "test_speed_run_categories"
         race_data["category_data"] = self.speed_run_categories
@@ -120,7 +154,7 @@ class TestLeaderboard(unittest.TestCase):
             leaderboards,
         ) = leaderboard.add_record(race_data, "Jane", 121212, "15:14.130", "150")
         race_info_correct = "Cups: Mushroom, Flower, Star, Special"
-        status_correct = "You have the record!"
+        status_correct = "Your record has been added."
         standing_correct = (
             "----------\n**150cc**: You are in 2. place, behind Dan."
             "\n**200cc**: You are not on the leaderboard yet."

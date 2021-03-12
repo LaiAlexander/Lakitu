@@ -352,9 +352,14 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
             status = "Your previous record is better!"
             break
     else:
+        if not record_list:
+            print("You have the record!")
+            status = "You have the record!"
+        else:
+            print("Your record has been added.")
+            status = "Your record has been added."
         record_list.append(record)
-        print("You have the record!")
-        status = "You have the record!"
+
     record_list.sort()
     race["Leaderboard"][cc] = [record.json for record in record_list]
     race_info, standing, leaderboard_titles, leaderboards = view_course_records(
