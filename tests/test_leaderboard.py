@@ -121,7 +121,10 @@ class TestLeaderboard(unittest.TestCase):
         ) = leaderboard.add_record(race_data, "Jane", 121212, "15:14.130", "150")
         race_info_correct = "Cups: Mushroom, Flower, Star, Special"
         status_correct = "You have the record!"
-        standing_correct = "----------\n**150cc**: You are in 2. place, behind Dan.\n**200cc**: You are not on the leaderboard yet."
+        standing_correct = (
+            "----------\n**150cc**: You are in 2. place, behind Dan."
+            "\n**200cc**: You are not on the leaderboard yet."
+        )
         leaderboard_titles_correct = {
             "150cc": "Top 2 results (150cc)",
             "200cc": "Top results (200cc)",
@@ -144,7 +147,10 @@ class TestLeaderboard(unittest.TestCase):
             leaderboards,
         ) = leaderboard.add_record(race_data, "Jane", 121212, "09:14.130", "150")
         status_correct = "Dan have been beaten!"
-        standing_correct = "----------\n**150cc**: You are in 1. place!\n**200cc**: You are not on the leaderboard yet."
+        standing_correct = (
+            "----------\n**150cc**: You are in 1. place!"
+            "\n**200cc**: You are not on the leaderboard yet."
+        )
         leaderboards_correct = {
             "150cc": "1. Jane: 09:14.130\n2. Dan: 10:12.213",
             "200cc": "No records for 200cc yet!",
@@ -244,27 +250,33 @@ class TestLeaderboard(unittest.TestCase):
         pass
 
     def test_view_versus_rating(self):
-        standing, leaderboard_title, l_board = leaderboard.view_versus_rating(895961, all_places=True)
+        standing, leaderboard_title, l_board = leaderboard.view_versus_rating(
+            895961, all_places=True
+        )
         correct_standing = "Tim is in 1. place with VR 6000!"
         correct_leaderboard_title = "All versus ratings:"
-        correct_l_board = "1. Tim: 6000\n2. Kate: 5600\n3. Mary: 5000\n4. Dan: 1909\n5. Roger: 1520\n6. Jenny: 1400"
+        correct_l_board = (
+            "1. Tim: 6000\n2. Kate: 5600\n3. Mary: 5000\n"
+            "4. Dan: 1909\n5. Roger: 1520\n6. Jenny: 1400"
+        )
         self.assertEqual(correct_standing, standing)
         self.assertEqual(correct_leaderboard_title, leaderboard_title)
         self.assertEqual(correct_l_board, l_board)
+
         standing, leaderboard_title, l_board = leaderboard.view_versus_rating(577201)
         correct_standing = "Kate is in 2. place with VR 5600, behind Tim."
         correct_leaderboard_title = "Top 5 versus ratings:"
-        correct_l_board = "1. Tim: 6000\n2. Kate: 5600\n3. Mary: 5000\n4. Dan: 1909\n5. Roger: 1520"
+        correct_l_board = (
+            "1. Tim: 6000\n2. Kate: 5600\n3. Mary: 5000\n4. Dan: 1909\n5. Roger: 1520"
+        )
         self.assertEqual(correct_standing, standing)
         self.assertEqual(correct_leaderboard_title, leaderboard_title)
         self.assertEqual(correct_l_board, l_board)
+
         standing, leaderboard_title, l_board = leaderboard.view_versus_rating(100000)
-        correct_standing = "Couldn\'t find anyone with discord id: 100000."
-        correct_leaderboard_title = "Top 5 versus ratings:"
-        correct_l_board = "1. Tim: 6000\n2. Kate: 5600\n3. Mary: 5000\n4. Dan: 1909\n5. Roger: 1520"
+        correct_standing = "Couldn't find anyone with discord id: 100000."
         self.assertEqual(correct_standing, standing)
-        self.assertEqual(correct_leaderboard_title, leaderboard_title)
-        self.assertEqual(correct_l_board, l_board)
+
 
 if __name__ == "__main__":
     unittest.main()
