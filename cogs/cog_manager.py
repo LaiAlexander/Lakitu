@@ -12,7 +12,9 @@ class CogManager(commands.Cog):
     async def on_ready(self):
         print(f"{self.__class__.__name__} cog has been loaded\n-----", flush=True)
 
-    @commands.command(name="owner", help="Check if you are owner of this bot.", hidden=True)
+    @commands.command(
+        name="owner", help="Check if you are owner of this bot.", hidden=True
+    )
     async def owner(self, ctx):
         owner = self.bot.is_owner(ctx.author)
         owner = "Yes" if owner else "No"
@@ -68,9 +70,7 @@ class CogManager(commands.Cog):
                     )
                     print(f"{cog} cog has been loaded\n-----", flush=True)
                 except Exception as e:
-                    embed.add_field(
-                        name=f"Failed to load {cog}.", value=e, inline=True
-                    )
+                    embed.add_field(name=f"Failed to load {cog}.", value=e, inline=True)
                     print(f"Execption: {e}", flush=True)
         else:
             async with ctx.typing():

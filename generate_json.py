@@ -18,6 +18,7 @@ CUPS = [
 SPEED_RUN_CATEGORIES = ["Nitro", "Retro", "Extra", "48"]
 CONSOLES = ["GBA", "N64", "SNES", "DS", "Wii", "3DS", "GCN"]
 
+
 def generate_tracks():
     # Generate tracks
     with open("tracks.txt") as file:
@@ -45,6 +46,7 @@ def generate_tracks():
                 cup_i += 1
     return tracks
 
+
 def generate_aliases(tracks):
     # Generate aliases
     aliases = {}
@@ -56,6 +58,7 @@ def generate_aliases(tracks):
         aliases[alias] = track
         tracks[track]["Alias"] = alias
     return aliases
+
 
 def generate_cups(tracks):
     # Generate cups
@@ -75,8 +78,9 @@ def generate_cups(tracks):
         cup_name = tracks[track]["Cup"]
         cups[cup_name]["Tracks"].append(track)
         cups[cup_name]["Course"] = tracks[track]["Course"]
-    
+
     return cups
+
 
 def generate_speed_run_categories(tracks):
     # Generate speed_run_categories
@@ -99,8 +103,10 @@ def generate_speed_run_categories(tracks):
             speed_run_categories["48"]["Cups"].append(tracks[track]["Cup"])
     return speed_run_categories
 
+
 def generate_versus_rating():
     return {"vrs": []}
+
 
 def generate_json():
     tracks = generate_tracks()
@@ -120,10 +126,14 @@ def generate_json():
     with open(pathlib.Path.cwd().joinpath("data", "cups.json"), "w") as outfile:
         json.dump(cups, outfile, indent=4)
 
-    with open(pathlib.Path.cwd().joinpath("data", "speed_run_categories.json"), "w") as outfile:
+    with open(
+        pathlib.Path.cwd().joinpath("data", "speed_run_categories.json"), "w"
+    ) as outfile:
         json.dump(speed_run_categories, outfile, indent=4)
 
-    with open(pathlib.Path.cwd().joinpath("data", "versus_rating.json"), "w") as outfile:
+    with open(
+        pathlib.Path.cwd().joinpath("data", "versus_rating.json"), "w"
+    ) as outfile:
         json.dump(versus_rating, outfile, indent=4)
 
 

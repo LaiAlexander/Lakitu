@@ -25,9 +25,11 @@ class Updater(commands.Cog):
             print(f"Pulling from Github...\n{status}")
             with open("requirements.txt", "r") as req:
                 new_req_list = [line.strip() for line in req.readlines()]
-            modules_to_install = [module for module in new_req_list if module not in req_list]
+            modules_to_install = [
+                module for module in new_req_list if module not in req_list
+            ]
             embed = discord.Embed(title="Pulling from Github")
-            embed.add_field(name="Status:", value=status)  
+            embed.add_field(name="Status:", value=status)
             if modules_to_install:
                 print("Installing requirements...", flush=True)
                 print(modules_to_install, flush=True)
@@ -80,7 +82,7 @@ def pip_install(module):
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=True # This line requires at least Python 3.7
+            text=True,  # This line requires at least Python 3.7
         )
     except subprocess.CalledProcessError as exc:
         print("Exception occured:", flush=True)
@@ -94,7 +96,10 @@ def pip_install(module):
     if len(status) > 1500:
         truncated = status[1500:]
         status = status[:1500]
-        status = status + f"\n-----\nRest of message ({len(truncated)} characters) truncated."
+        status = (
+            status
+            + f"\n-----\nRest of message ({len(truncated)} characters) truncated."
+        )
     return status
 
 
