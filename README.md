@@ -39,6 +39,8 @@ Unix: `. env/bin/activate`
 
 You can install all of the at once with `pip install -r requirements.txt`
 
+Also requires at least [Python 3.7](https://www.python.org/downloads/).
+
 ## Usage
 * View all the different commands: `!help`
 * View help text of a specific commands: `!help [command] [subcommand]`\
@@ -62,10 +64,10 @@ If [cog] is blank, it will unload, load or reload all cogs. `cog_manager` will n
 This will attempt to pull the newest updates from GitHub, and then reload all cogs. This makes it possible to update the bot remotely while it's running. It's currently only possible to load/reload new cogs, so if there's changes to the core `lakitu.py`, the bot still has to be restarted manually.
 
 ## Running tests
-First, navigate/cd to the root directory of the project. Test coverage is lackluster at the moment, but is under active improvement.
+First, navigate/cd to the root directory of the project. Test coverage is lackluster at the moment, but is under active improvement. Verbose mode (-v) is optional.
 Run all tests with either unittest or pytest.\
 unittest: `python -m unittest discover -b (-v)`\
-pytest: `pytest`\
+pytest: `pytest (-v)`
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)

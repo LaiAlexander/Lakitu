@@ -30,9 +30,9 @@ jobs:
         python generate_json.py
     - name: Test with pytest and generate coverage
       run: |
-        coverage run --omit=tests/* -m pytest tests
+        coverage run --omit=tests/* -m pytest tests -v
         coverage report
-    - name: Upload coverage data to coveralls.io
+    - name: Upload coverage to coveralls.io
       run: |
         coveralls --service=github
       env:
