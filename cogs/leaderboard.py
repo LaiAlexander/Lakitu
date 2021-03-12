@@ -258,8 +258,8 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
                     record_list.remove(old_record)
                     break
             record_list.insert(i, record)
-            print(existing_record.name + " have been beaten!")
-            status = f"{existing_record.name} have been beaten!"
+            print(existing_record.name + " has been beaten!")
+            status = f"<@{existing_record.discord_id}> has been beaten!"
             break
         if record.name == existing_record.name:
             print("Your previous record is better!")
@@ -337,7 +337,7 @@ def view_course_records(race_name=None, category=None, category_name=None, name=
 
     standing = ["----------"]
     for cc, record_list in records.items():
-        for i , record in enumerate(record_list):
+        for i, record in enumerate(record_list):
             if record["Name"] == name:
                 if i == 0:
                     print(f"{cc}: You are in {i + 1}. place!")
@@ -522,7 +522,8 @@ def setup(bot):
     bot.add_cog(Leaderboard(bot))
 
 if __name__ == '__main__':
-    add_record()
+    pass
+    # add_record()
     # view_course_records()
     # count_personal_records()
     # view_personal_records()

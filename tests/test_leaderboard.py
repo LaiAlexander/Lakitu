@@ -146,7 +146,7 @@ class TestLeaderboard(unittest.TestCase):
             leaderboard_titles,
             leaderboards,
         ) = leaderboard.add_record(race_data, "Jane", 121212, "09:14.130", "150")
-        status_correct = "Dan have been beaten!"
+        status_correct = "<@895961> has been beaten!"
         standing_correct = (
             "----------\n**150cc**: You are in 1. place!"
             "\n**200cc**: You are not on the leaderboard yet."
