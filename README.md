@@ -45,7 +45,7 @@ Also requires at least [Python 3.7](https://www.python.org/downloads/).
 * View all the different commands: `!help`
 * View help text of a specific commands: `!help [command] [subcommand]`\
 [subcommand] is optional
-* Register your time trial result: `!timetrial [track name/alias/cup/category] [HH:MM:SS.ms] [cc]`
+* Register your time trial result: `!timetrial [track name/alias/cup/category] [HH:MM:SS.ms]/[MM:SS.ms] [cc]`
 * View info about a track/cup/category: `!timetrial info [track name/cup/category]`
 * Get a count of your records: `!timetrial myrecords`
 * View all of your records: `!timetrial myrecords list`
