@@ -6,10 +6,10 @@ A Discord bot to keep track of time trial leaderboards in Mario Kart 8 Deluxe.\
 ![GitHub](https://img.shields.io/github/license/LaiAlexander/Lakitu)
 
 ### Milestone progress
-![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/1)
-![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/2)
-![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/3)
-![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/4)
+[![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/1)](https://github.com/LaiAlexander/Lakitu/milestone/1)
+[![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/2)](https://github.com/LaiAlexander/Lakitu/milestone/2)
+[![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/33)](https://github.com/LaiAlexander/Lakitu/milestone/3)
+[![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/4)](https://github.com/LaiAlexander/Lakitu/milestone/4)
 
 ## Overview
 Lakitu is a self hosted Discord bot to keep track of various Mario Kart 8 Deluxe stats. It's meant to make competition fun in your friend group. Lakitu can keep track of time trial records, both for individual tracks, cups and speed run categories. Currently only 150cc and 200cc is supported. Lakitu can also keep track of the versus ratings of players.
