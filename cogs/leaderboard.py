@@ -86,7 +86,10 @@ class Leaderboard(commands.Cog):
         race_data = get_race_data(race)
         if not race_data:
             await ctx.send(
-                f"Sorry, could not find a track named {race}. Remember capital letters and put the name within quotation marks if it is a multi-word name."
+                f"Sorry, could not find a track named `{race}`."
+                f"Remember capital letters and put the name within quotation"
+                f"marks if it is a multi-word name.\n"
+                f'Example: `!tt info "SNES Donut Plains 3"`'
             )
             return
         name = ctx.author.name
@@ -165,7 +168,10 @@ class Leaderboard(commands.Cog):
         race_data = get_race_data(race_name)
         if not race_data:
             await ctx.send(
-                f'Sorry, could not find a track named `{race_name}`. Remember capital letters and put the name within quotation marks if it is a multi-word name.\nExample: `!tt info "SNES Donut Plains 3"`'
+                f"Sorry, could not find a track named `{race_name}`."
+                f"Remember capital letters and put the name within quotation"
+                f"marks if it is a multi-word name.\n"
+                f'Example: `!tt info "SNES Donut Plains 3"`'
             )
             return
         if race_data["category_name"] == "cups":
@@ -205,6 +211,34 @@ class Leaderboard(commands.Cog):
             file = discord.File(icon_url, filename="image.png")
             embed.set_thumbnail(url="attachment://image.png")
         await ctx.send(embed=embed, file=file)
+
+    @timetrial.command(name="delete", help="Delete a personal record.")
+    async def delete_record(self, ctx, race_name, cc):
+        race_data = get_race_data(race_name)
+        if not race_data:
+            await ctx.send(
+                f"Sorry, could not find a track named `{race_name}`."
+                f"Remember capital letters and put the name within quotation"
+                f"marks if it is a multi-word name.\n"
+                f'Example: `!tt delete "SNES Donut Plains 3" 150`'
+            )
+            return
+        new_cc = get_cc(cc)
+        if not new_cc:
+            await ctx.send(f"{cc} is not a valid cc. Enter 150 or 200 as your cc.")
+            return
+
+        status = delete_course_record(race_data, ctx.author.id, new_cc)
+
+        embed = make_embed(
+            f"{race_data['name']} {new_cc}",
+            "Trying to delete record...",
+            status,
+            ctx.author.name,
+            ctx.author.avatar_url,
+        )
+
+        await ctx.send(embed=embed)
 
 
 def make_embed(title, status, standing, name, icon_url, field_1=None, field_2=None):
@@ -322,11 +356,9 @@ def add_record(race_data=None, name=None, discord_id=None, time=None, cc=None):
     if not race_name:
         return
     race = category[race_name]
-    ccs = ["150", "200"]
-    if cc not in ccs:
-        print("Not valid cc")
+    cc = get_cc(cc)
+    if not cc:
         return
-    cc = cc + "cc"
 
     record = Record(name, discord_id, time)
 
@@ -528,6 +560,33 @@ def view_personal_records(discord_id=None):
         else:
             records[key] = "No records yet!"
     return records
+
+
+def delete_course_record(race_data=None, discord_id=None, cc=None):
+    race_name = race_data["name"]
+    category_name = race_data["category_name"]
+    category = race_data["category_data"]
+    race = category[race_name]
+    deleted = False
+
+    record_list = [Record.from_json(records) for records in race["Leaderboard"][cc]]
+    for existing_record in record_list:
+        if discord_id == existing_record.discord_id:
+            record_list.remove(existing_record)
+            deleted = True
+
+    if deleted:
+        record_list.sort()
+        race["Leaderboard"][cc] = [record.json for record in record_list]
+
+        with open(Path.cwd().joinpath("data", category_name + ".json"), "w") as outfile:
+            json.dump(category, outfile, indent=4)
+
+        status = "Your record has been deleted."
+    else:
+        status = "You didn't have a record."
+
+    return status
 
 
 def update_versus_rating(name=None, discord_id=None, v_rating=None):

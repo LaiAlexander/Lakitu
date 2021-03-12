@@ -279,6 +279,20 @@ class TestLeaderboard(unittest.TestCase):
         records = leaderboard.view_personal_records(000000)
         self.assertDictEqual(correct_records, records)
 
+    def test_delete_course_record(self):
+        race_data = {}
+        race_data["name"] = "Mario Kart Stadium"
+        race_data["category_name"] = "test_tracks"
+        race_data["category_data"] = self.tracks
+        status = leaderboard.delete_course_record(race_data, 895961, "150cc")
+        correct_status = "Your record has been deleted."
+        self.assertEqual(status, correct_status)
+        status = leaderboard.delete_course_record(race_data, 895961, "150cc")
+        correct_status = "You didn't have a record."
+        self.assertEqual(status, correct_status)
+
+        Path.cwd().joinpath("data", race_data["category_name"] + ".json").unlink()
+
     def test_update_versus_rating(self):
         # TODO implement this
         pass
