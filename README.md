@@ -8,7 +8,7 @@ A Discord bot to keep track of time trial leaderboards in Mario Kart 8 Deluxe.\
 ### Milestone progress
 [![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/1)](https://github.com/LaiAlexander/Lakitu/milestone/1)
 [![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/2)](https://github.com/LaiAlexander/Lakitu/milestone/2)
-[![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/3)](https://github.com/LaiAlexander/Lakitu/milestone/)
+[![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/3)](https://github.com/LaiAlexander/Lakitu/milestone/3)
 [![GitHub milestone](https://img.shields.io/github/milestones/progress-percent/LaiAlexander/Lakitu/4)](https://github.com/LaiAlexander/Lakitu/milestone/4)
 
 ## Overview
