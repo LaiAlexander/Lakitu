@@ -142,6 +142,8 @@ class TestLeaderboard(unittest.TestCase):
         self.assertEqual(leaderboard_titles, leaderboard_titles_correct)
         self.assertEqual(leaderboards, leaderboards_correct)
 
+        Path.cwd().joinpath("data", race_data["category_name"] + ".json").unlink()
+
         race_data = {}
         race_data["name"] = "Nitro"
         race_data["category_name"] = "test_speed_run_categories"
@@ -257,7 +259,38 @@ class TestLeaderboard(unittest.TestCase):
     def test_view_course_records(self):
         # TODO implement this
         # Big parts of this is tested indirectly through test_add_record()
-        pass
+        (
+            race_info,
+            standing,
+            leaderboard_titles,
+            leaderboards,
+        ) = leaderboard.view_course_records(
+            "Mario Kart Stadium", leaderboard.TRACKS, "tracks", "Dan"
+        )
+        correct_race_info = "Mushroom cup, Nitro course.\nAlias: makast"
+        correct_standing = (
+            "----------\n**150cc**: You are in 1. place!\n"
+            "**200cc**: You are not on the leaderboard yet."
+        )
+        correct_leaderboard_titles = {
+            "150cc": "Top 3 results (150cc)",
+            "200cc": "Top 1 results (200cc)",
+        }
+        correct_leaderboards = {
+            "150cc": "1. Dan: 01:02.496\n2. Kate: 01:37.123\n3. Mary: 01:39.000",
+            "200cc": "1. Mary: 01:39.000",
+        }
+        self.assertEqual(correct_race_info, race_info)
+        self.assertEqual(correct_standing, standing)
+        self.assertDictEqual(correct_leaderboard_titles, leaderboard_titles)
+        self.assertDictEqual(correct_leaderboards, leaderboards)
+        # print("view_course_records")
+        # print("race info: " + race_info)
+        # print("standing: " + standing)
+        # print("leaderboard_titles")
+        # print(leaderboard_titles)
+        # print("leaderboards")
+        # print(leaderboards)
 
     def test_count_personal_records(self):
         # TODO implement this
@@ -294,8 +327,59 @@ class TestLeaderboard(unittest.TestCase):
         Path.cwd().joinpath("data", race_data["category_name"] + ".json").unlink()
 
     def test_update_versus_rating(self):
-        # TODO implement this
-        pass
+        status, standing, leaderboard_title, l_board = leaderboard.update_versus_rating(
+            "Jenny", 323056, 1450
+        )
+        correct_status = "Your rating has been updated!"
+        correct_standing = "Jenny is in 6. place with VR 1450, behind Roger."
+        correct_leaderboard_title = "Top 5 versus ratings:"
+        correct_l_board = (
+            "1. Tim: 6000\n2. Kate: 5600\n3. Mary: 5000\n"
+            "4. Dan: 1909\n5. Roger: 1520"
+        )
+        self.assertEqual(correct_status, status)
+        self.assertEqual(correct_standing, standing)
+        self.assertEqual(correct_leaderboard_title, leaderboard_title)
+        self.assertEqual(correct_l_board, l_board)
+
+        status, standing, leaderboard_title, l_board = leaderboard.update_versus_rating(
+            "Jenny", 323056, 1600
+        )
+        correct_status = "You beat Roger."
+        correct_standing = "Jenny is in 5. place with VR 1600, behind Dan."
+        correct_l_board = (
+            "1. Tim: 6000\n2. Kate: 5600\n3. Mary: 5000\n"
+            "4. Dan: 1909\n5. Jenny: 1600"
+        )
+        self.assertEqual(correct_status, status)
+        self.assertEqual(correct_standing, standing)
+        self.assertEqual(correct_l_board, l_board)
+
+        status, standing, leaderboard_title, l_board = leaderboard.update_versus_rating(
+            "Jonah", 322361, 1650
+        )
+        correct_status = "You beat Jenny."
+        correct_standing = "Jonah is in 5. place with VR 1650, behind Dan."
+        correct_l_board = (
+            "1. Tim: 6000\n2. Kate: 5600\n3. Mary: 5000\n"
+            "4. Dan: 1909\n5. Jonah: 1650"
+        )
+        self.assertEqual(correct_status, status)
+        self.assertEqual(correct_standing, standing)
+        self.assertEqual(correct_l_board, l_board)
+
+        status, standing, leaderboard_title, l_board = leaderboard.update_versus_rating(
+            "Brianna", 248197, 900
+        )
+        correct_status = "Your rating has been added."
+        correct_standing = "Brianna is in 8. place with VR 900, behind Roger."
+        correct_l_board = (
+            "1. Tim: 6000\n2. Kate: 5600\n3. Mary: 5000\n"
+            "4. Dan: 1909\n5. Jonah: 1650"
+        )
+        self.assertEqual(correct_status, status)
+        self.assertEqual(correct_standing, standing)
+        self.assertEqual(correct_l_board, l_board)
 
     def test_view_versus_rating(self):
         standing, leaderboard_title, l_board = leaderboard.view_versus_rating(
