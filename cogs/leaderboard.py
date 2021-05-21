@@ -4,6 +4,7 @@ from pathlib import Path
 
 import discord
 from discord.ext import commands
+from discord.ext.commands.errors import NoEntryPointError
 
 with open(Path.cwd().joinpath("data", "tracks.json"), "r") as read_file:
     TRACKS = json.load(read_file)
@@ -74,6 +75,30 @@ class Leaderboard(commands.Cog):
             "Versus ratings", status, standing, name, ctx.author.avatar_url, leaderboard
         )
         await ctx.send(embed=embed)
+
+    @vrating.command(name="delete", help="Delete a player from the VR leaderboard.")
+    @commands.is_owner()
+    async def delete(self, ctx, name=None):
+        if name is None:
+            return
+        discord_id = None
+        index = None
+        for i, vr in enumerate(VERSUS_RATINGS["vrs"]):
+            if vr["Name"].lower() == str(name).lower():
+                discord_id = vr["ID"]
+                index = i
+
+        user = self.bot.get_user(discord_id)
+        if not user:
+            await ctx.send(f"Could not find {name} on the vr leaderboard.")
+            return
+
+        del VERSUS_RATINGS["vrs"][index]
+
+        with open(Path.cwd().joinpath("data", "versus_rating.json"), "w") as outfile:
+            json.dump(VERSUS_RATINGS, outfile, indent=4)
+
+        await ctx.send(f"{name} successfully deleted from the leaderboard")
 
     @commands.group(
         name="timetrial",
