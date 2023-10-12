@@ -37,7 +37,7 @@ Unix: `. env/bin/activate`
 * [`GitPython==3.1.14`](https://github.com/gitpython-developers/GitPython)
 * [`python-dotenv==0.15.0`](https://github.com/theskumar/python-dotenv)
 
-You can install all of the at once with `pip install -r requirements.txt`
+You can install all of the above at once with `pip install -r requirements.txt`
 
 Also requires at least [Python 3.7](https://www.python.org/downloads/).
 
